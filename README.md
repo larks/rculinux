@@ -1,2 +1,2 @@
-rcu2linux
+rculinux-2.0
 =========
