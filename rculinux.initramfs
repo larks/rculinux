@@ -35,6 +35,7 @@ ifarch M2S file /etc/inittab ${INSTALL_ROOT}/projects/${SAMPLE}/local/inittab.M2
 file /etc/rc ${INSTALL_ROOT}/projects/${SAMPLE}/local/rc 755 0 0
 file /etc/hosts ${INSTALL_ROOT}/projects/${SAMPLE}/local/hosts 644 0 0
 file /etc/services ${INSTALL_ROOT}/projects/${SAMPLE}/local/services 644 0 0
+file /etc/protocols ${INSTALL_ROOT}/projects/${SAMPLE}/local/protocols 644 0 0
 file /etc/passwd ${INSTALL_ROOT}/projects/${SAMPLE}/local/passwd 644 0 0
 file /etc/group ${INSTALL_ROOT}/projects/${SAMPLE}/local/group 644 0 0
 file /etc/shadow ${INSTALL_ROOT}/projects/${SAMPLE}/local/shadow 644 0 0
@@ -85,6 +86,10 @@ slink /bin/vi busybox 777 0 0
 slink /bin/udhcpc busybox 777 0 0
 ifarch A2F file /bin/iap_tool ${INSTALL_ROOT}/A2F/root/usr/bin/iap_tool 755 0 0
 
+# Tools that are nice to have
+slink /bin/grep busybox 777 0 0
+slink /bin/less busybox 777 0 0
+#
 dir /usr 755 0 0
 dir /usr/bin 755 0 0
 dir /usr/share 755 0 0
@@ -97,3 +102,12 @@ slink /usr/bin/[[ ../../bin/busybox 777 0 0
 file /app ${INSTALL_ROOT}/projects/${SAMPLE}/app/app 755 0 0
 file /sample.ko ${INSTALL_ROOT}/projects/${SAMPLE}/app/sample.ko 755 0 0
 nod /dev/sample 0600 0 0 c 166 0
+
+# Dropbear ssh server
+dir /etc/dropbear 0755 0 0
+file /etc/dropbear/dropbear_dss_host_key ${INSTALL_ROOT}/projects/${SAMPLE}/local/ssh_host_dss_key 644 0 0
+# file /etc/dropbear/dropbear_rsa_host_key ${INSTALL_ROOT}/projects/${SAMPLE}/local/ssh_host_rsa_key 644 0 0
+file /usr/bin/dropbear ${INSTALL_ROOT}/A2F/root/usr/sbin/dropbear 755 0 0
+file /usr/bin/dbclient ${INSTALL_ROOT}/A2F/root/usr/bin/dbclient 755 0 0
+file /usr/bin/scp ${INSTALL_ROOT}/A2F/root/usr/bin/scp 755 0 0
+slink /usr/bin/ssh dbclient 777 0 0

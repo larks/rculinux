@@ -1,7 +1,7 @@
-cmd_/home/lars/work/linux-cortexm-1.11.0/projects/rcu2linux/app/sample.mod.o := arm-uclinuxeabi-gcc -Wp,-MD,/home/lars/work/linux-cortexm-1.11.0/projects/rcu2linux/app/.sample.mod.o.d  -nostdinc -isystem /home/lars/work/linux-cortexm-1.11.0/tools/arm-2010q1/bin/../lib/gcc/arm-uclinuxeabi/4.4.1/include -I/home/lars/work/linux-cortexm-1.11.0/linux/arch/arm/include -Iinclude  -include include/generated/autoconf.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-m2s/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -fno-delete-null-pointer-checks -Os -marm -mabi=aapcs-linux -mno-thumb-interwork -mthumb -Wa,-mimplicit-it=always -Wa,-mno-warn-deprecated -D__LINUX_ARM_ARCH__=7 -mcpu=cortex-m3 -Wa,-mcpu=cortex-m3 -msoft-float -Uarm -Wframe-larger-than=1024 -fno-stack-protector -fomit-frame-pointer -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fno-dwarf2-cfi-asm -fconserve-stack  -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(sample.mod)"  -D"KBUILD_MODNAME=KBUILD_STR(sample)"  -DMODULE -mlong-calls -fno-optimize-sibling-calls -c -o /home/lars/work/linux-cortexm-1.11.0/projects/rcu2linux/app/sample.mod.o /home/lars/work/linux-cortexm-1.11.0/projects/rcu2linux/app/sample.mod.c
+cmd_/home/lars/work/linux-cortexm-1.11.0/projects/rculinux/app/sample.mod.o := arm-uclinuxeabi-gcc -Wp,-MD,/home/lars/work/linux-cortexm-1.11.0/projects/rculinux/app/.sample.mod.o.d  -nostdinc -isystem /home/lars/work/linux-cortexm-1.11.0/tools/arm-2010q1/bin/../lib/gcc/arm-uclinuxeabi/4.4.1/include -I/home/lars/work/linux-cortexm-1.11.0/linux/arch/arm/include -Iinclude  -include include/generated/autoconf.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-m2s/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -fno-delete-null-pointer-checks -Os -marm -mabi=aapcs-linux -mno-thumb-interwork -mthumb -Wa,-mimplicit-it=always -Wa,-mno-warn-deprecated -D__LINUX_ARM_ARCH__=7 -mcpu=cortex-m3 -Wa,-mcpu=cortex-m3 -msoft-float -Uarm -Wframe-larger-than=1024 -fno-stack-protector -fomit-frame-pointer -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fno-dwarf2-cfi-asm -fconserve-stack  -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(sample.mod)"  -D"KBUILD_MODNAME=KBUILD_STR(sample)"  -DMODULE -mlong-calls -fno-optimize-sibling-calls -c -o /home/lars/work/linux-cortexm-1.11.0/projects/rculinux/app/sample.mod.o /home/lars/work/linux-cortexm-1.11.0/projects/rculinux/app/sample.mod.c
 
-deps_/home/lars/work/linux-cortexm-1.11.0/projects/rcu2linux/app/sample.mod.o := \
-  /home/lars/work/linux-cortexm-1.11.0/projects/rcu2linux/app/sample.mod.c \
+deps_/home/lars/work/linux-cortexm-1.11.0/projects/rculinux/app/sample.mod.o := \
+  /home/lars/work/linux-cortexm-1.11.0/projects/rculinux/app/sample.mod.c \
     $(wildcard include/config/module/unload.h) \
   include/linux/module.h \
     $(wildcard include/config/symbol/prefix.h) \
@@ -292,6 +292,6 @@ deps_/home/lars/work/linux-cortexm-1.11.0/projects/rcu2linux/app/sample.mod.o :=
   include/linux/vermagic.h \
   include/generated/utsrelease.h \
 
-/home/lars/work/linux-cortexm-1.11.0/projects/rcu2linux/app/sample.mod.o: $(deps_/home/lars/work/linux-cortexm-1.11.0/projects/rcu2linux/app/sample.mod.o)
+/home/lars/work/linux-cortexm-1.11.0/projects/rculinux/app/sample.mod.o: $(deps_/home/lars/work/linux-cortexm-1.11.0/projects/rculinux/app/sample.mod.o)
 
-$(deps_/home/lars/work/linux-cortexm-1.11.0/projects/rcu2linux/app/sample.mod.o):
+$(deps_/home/lars/work/linux-cortexm-1.11.0/projects/rculinux/app/sample.mod.o):
