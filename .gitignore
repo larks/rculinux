@@ -1,6 +1,9 @@
 # Object files
 *.o
 *.ko
+*.ko.cmd
+*.o.cmd
+*.symvers
 
 # Libraries
 *.lib
@@ -11,6 +14,7 @@
 *.so
 *.so.*
 *.dylib
+*.gdb
 
 # Executables
 *.exe
@@ -19,3 +23,6 @@
 
 # Gedit
 *~
+
+# Folders
+*.tmp_versions

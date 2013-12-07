@@ -1,0 +1,26 @@
+
+minim.o:     file format elf32-littlearm
+
+
+Disassembly of section .exit.text:
+
+00000000 <cleanup_module>:
+   0:	b508      	push	{r3, lr}
+   2:	4802      	ldr	r0, [pc, #8]	; (c <cleanup_module+0xc>)
+   4:	4b02      	ldr	r3, [pc, #8]	; (10 <cleanup_module+0x10>)
+   6:	4798      	blx	r3
+   8:	bd08      	pop	{r3, pc}
+   a:	bf00      	nop
+	...
+
+Disassembly of section .init.text:
+
+00000000 <init_module>:
+   0:	b508      	push	{r3, lr}
+   2:	4802      	ldr	r0, [pc, #8]	; (c <init_module+0xc>)
+   4:	4b02      	ldr	r3, [pc, #8]	; (10 <init_module+0x10>)
+   6:	4798      	blx	r3
+   8:	2000      	movs	r0, #0
+   a:	bd08      	pop	{r3, pc}
+   c:	00000014 	.word	0x00000014
+  10:	00000000 	.word	0x00000000

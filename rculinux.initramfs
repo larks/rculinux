@@ -107,6 +107,10 @@ file /app ${INSTALL_ROOT}/projects/${SAMPLE}/app/app 755 0 0
 file /sample.ko ${INSTALL_ROOT}/projects/${SAMPLE}/app/sample.ko 755 0 0
 nod /dev/sample 0600 0 0 c 166 0
 
+# Debug tools
+file /bin/peekpoke ${INSTALL_ROOT}/projects/${SAMPLE}/peekpoke/peekpoke 755 0 0
+nod /dev/rcuc 0600 0 0 c 254 0
+
 # Dropbear ssh server
 dir /etc/dropbear 0755 0 0
 file /etc/dropbear/dropbear_dss_host_key ${INSTALL_ROOT}/projects/${SAMPLE}/local/ssh_host_dss_key 644 0 0
