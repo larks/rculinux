@@ -5,6 +5,7 @@
 *.o.cmd
 *.symvers
 *.mod.c
+modules.order
 # Libraries
 *.lib
 *.a
