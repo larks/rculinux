@@ -4,7 +4,7 @@
 *.ko.cmd
 *.o.cmd
 *.symvers
-
+*.mod.c
 # Libraries
 *.lib
 *.a
