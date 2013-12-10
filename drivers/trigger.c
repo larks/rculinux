@@ -29,6 +29,21 @@ static uint rcuc_majorID = 254;
 // Access control
 static int driver_lock = 0;
 
+
+/*Internal functions*/
+static int rcu_read(u32 begin, u32 size, u32* buff)
+{
+	int i;
+	u32 wordoffset;
+	for(i=0; i<size; i++){
+		*(buff+wordoffset) = readl(begin+i);
+		wordoffset++;
+	}
+	return 0;
+}
+
+
+
 /*
 * Here comes file operation functions:
 */
@@ -46,8 +61,10 @@ static int rcuc_close(struct inode* inode, struct file* file_p)
 static ssize_t rcuc_read(struct file* file_p, 
                          char __user* buffer, 
                          size_t count, 
-                         loff_t *offset)
+                         loff_t* f_pos)
 {
+
+/*
 	// some stuff
 	int iResult = 0;
 	u32 lPosition=file_p->f_pos;
@@ -66,10 +83,19 @@ static ssize_t rcuc_read(struct file* file_p,
 			  u32Count = count;
 			else{
 			  u32Count = trig_recv_size;
-			  printk("read: read access exceeds the size of the register, truncate");
+			  printk("read: read access exceeds the size of the register, truncate\n");
 			}
-		u32Offset = lPosition;
-		pu32Source = trig_recv_phys_base;
+		u32Offset = lPosition; // set internal offset to file position
+		pu32Source = trig_recv_phys_base; // read from trigger receiver module
+		}
+		// Read data on request
+		if(pu32Source!=NULL){
+			u32Offset = u32Offset/sizeof(u32);
+			pu32Source = pu32Source + u32Offset;
+			rcu_read((u32)pu32Source, u32Count, (u32*) buffer);
+			iResult = (int)u32Count;
+			if(f_pos) *f_pos=file_p->f_pos+iResult;
+			else printk("read: invalid param offset, skipping position increment\n");
 		}
 	}
 	else{
@@ -77,13 +103,26 @@ static ssize_t rcuc_read(struct file* file_p,
 		iResult=-EINVAL;
 	}
 	return iResult;
+	*/
+	int i;
+	u32 wordoffset;
+	u32 word;
+	for(i=0; i<trig_recv_size; i++){
+		//*(buffer+wordoffset) = readl(trig_recv_phys_base+i);
+		word = readl(trig_recv_phys_base + i<<4);
+		if(copy_to_user(buffer, &word, 1)){return -EFAULT;}
+		printk("wordoffset:%lx\n", (long unsigned int)word);
+		wordoffset++;
+	}
+	return 0;
 }
 // File write
-static ssize_t rcuc_write(struct file *file, 
+static ssize_t rcuc_write(struct file *file_p, 
                           const char __user *buffer, 
                           size_t length, 
-                          loff_t *offset)
+                          loff_t* f_pos)
 {
+	printk("write not implemented\n");
 	return 0;	
 }
 // Define our custom file operation structure
@@ -125,8 +164,8 @@ static int __init rcumodule_init(void)
 
 	
 
-	buffer = readl(trig_recv_virtbase);
-	printk("read %lx, at 0x%p\n", (long unsigned int)buffer, trig_recv_virtbase);
+	buffer = readl(trig_recv_phys_base);
+	printk("read %lx, at 0x%p\n", (long unsigned int)buffer, trig_recv_phys_base);
 //	iResult = initRealBuffers();
 		
 	}
