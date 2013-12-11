@@ -1,29 +1,34 @@
-# Makefile for a custom application comprised of 
-# a loable kernel module and a user space program
-# (or a set of related modules and user space programs).
-# If your application doesn't need to have a kernel module or
-# a user space program, edit the two goals below to
-# exclude one or the other. 
-all		: modules
-clean		: clean_modules
+# Makefile
+
+all		: rcu-sh
+clean		: clean_apps
 
 # Edit the line below to modify a set of user-space programs
 # you need to build 
-#APPS		= app
-#apps		: $(APPS)	
+
+DEPS = cmdInterpreter.h
+#rcu_sh_SRC	= RCU_shell.c cmdInterpreter.c
+rcu_sh_OBJ	= RCU_shell.o cmdInterpreter.o
+RCU_shell.o	: RCU_shell.c $(DEPS)
+		  $(CC) -c RCU_shell.c $(CFLAGS)
+cmdInterpreter.o : cmdInterpreter.c $(DEPS)
+		  $(CC) -c cmdInterpreter.c $(CFLAGS)
+rcu-sh		: $(rcu_sh_OBJ)
+		  $(CC) $(LDFLAGS) -o rcu-sh $(rcu_sh_OBJ)
+
 
 # These are flags/tools used to build user-space programs
-CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb
-LDFLAGS		:= -mcpu=cortex-m3 -mthumb
+CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall
+LDFLAGS		:= -mcpu=cortex-m3 -mthumb -Wall
 CC		= $(CROSS_COMPILE_APPS)gcc
 
 # Clean-up after user-space programs
-#clean_apps	:
-#	-rm -f $(APPS) *.gdb *.o
+clean_apps	:
+	-rm -f $(APPS) *.gdb *.o
 
 # Edit the line below to modify a set of loadable modules
 # you need to build 
-obj-m		+= minim.o trigger.o sample2.o
+#obj-m		+= sample.o
 
 # Define dependencies for a particular module
 # sample-y	:= some.o

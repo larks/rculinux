@@ -10,6 +10,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include "cmdInterpreter.h"
+
+
+//const char * noArgPrompt[] = "enter operation (h/r/w):";
 
 unsigned int parseBinary(char *str) {
   unsigned int val = 0;
@@ -46,72 +50,79 @@ unsigned int parseNumber(char *str) {
 
 int main(int argc, char **argv)
 {
-  char * app_name = argv[0];
-  char * dev_name = "/dev/sample2";
-  int ret = -1;
-  int fd = -1;
-  int c, x;
-  char * cmd =  argv[1];
-  char * addr = argv[2];
-  char * data = NULL;
+	/* Check for arguments and print help prompt */
+	if(argc < 3){
+		//fprintf(stderr, "");
+		printHelp();
+		return -1;
+	}
 
-  int doread=0;
-  int dowrite=0;
+	char * app_name = argv[0];
+	char * dev_name = "/dev/sample2";
+	int ret = -1;
+	int fd = -1;
+	int c, x;
+	char * cmd =  argv[1];
+	char * addr = argv[2];
+	char * data = NULL;
+	
+	int doread=0;
+	int dowrite=0;
   ///read 
   
-  if(strcmp(cmd,"rd")==0){
-    doread=1;
-  }
-  if(strcmp(cmd,"wr")==0){
-    dowrite=1;
-    data = argv[3];
-  }
+	if(strcmp(cmd,"rd")==0){
+		doread=1;
+	}
+	if(strcmp(cmd,"wr")==0){
+		dowrite=1;
+		data = argv[3];
+	}
 
-  unsigned int intval ;
-  unsigned int offset ;
+	unsigned int intval ;
+	unsigned int offset ;
 
-  offset = parseNumber(addr);
-  intval = parseNumber(data);
+	offset = parseNumber(addr);
+	intval = parseNumber(data);
 
-  /*
-   * Open the sample device RD | WR
-   */
-  if ((fd = open(dev_name, O_RDWR)) < 0) {
-    fprintf(stderr, "%s: unable to open %s: %s\n", 
-	    app_name, dev_name, strerror(errno));
-    goto Done;
-  }
+	/*
+	 * Open the sample device RD | WR
+	 */
+	if ((fd = open(dev_name, O_RDWR)) < 0) {
+		fprintf(stderr, "%s: unable to open %s: %s\n", 
+			app_name, dev_name, strerror(errno));
+		goto Done;
+	}
   
-  /*
-   * Read the sample device byte-by-byte
-   */
-  if ((x = lseek(fd, offset, SEEK_SET)) < 0) {
-    fprintf(stderr, "%s: unable to seek %s: %s\n", 
-	    app_name, dev_name, strerror(errno));
-    goto Done;
-  }
+	/*
+	 * Read the sample device byte-by-byte
+	 */
+	if ((x = lseek(fd, offset, SEEK_SET)) < 0) {
+		fprintf(stderr, "%s: unable to seek %s: %s\n", 
+			app_name, dev_name, strerror(errno));
+		goto Done;
+	}
 
-  if(dowrite==1){
-    if ((x = write(fd, (char*)intval, sizeof(intval))) < 0) {
-      fprintf(stderr, "%s: unable to write %s: %s\n", 
-	      app_name, dev_name, strerror(errno));
-      goto Done;
-    }	
-  }
+	if(dowrite==1){
+		if ((x = write(fd, (char*)intval, sizeof(intval))) < 0) {
+			fprintf(stderr, "%s: unable to write %s: %s\n", 
+				app_name, dev_name, strerror(errno));
+		goto Done;
+		}	
+	}
 
-  if(doread==1){
-    if ((x = read(fd, &c, 4)) < 0) {
-      fprintf(stderr, "%s: unable to read %s: %s\n", 
-	      app_name, dev_name, strerror(errno));
-      goto Done;
-    }	
-    fprintf(stdout, "0x%x\n", c);
-  }
+	if(doread==1){
+		if ((x = read(fd, &c, 4)) < 0) {
+			fprintf(stderr, "%s: unable to read %s: %s\n", 
+				app_name, dev_name, strerror(errno));
+		goto Done;
+		}	
+		fprintf(stdout, "0x%x\n", c);
+	}
 
   
- Done:
-  if (fd >= 0) {
-    close(fd);
-  }
-  return ret;
+	Done:
+	if (fd >= 0) {
+		close(fd);
+	}
+	return ret;
 }

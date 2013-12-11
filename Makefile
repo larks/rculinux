@@ -5,7 +5,7 @@ SAMPLE		:= rculinux
 
 # Custom applcations subdirectories that this project
 # needs to build. Edit this list as appropriate for your application.
-CUSTOM_APPS	:= app
+CUSTOM_APPS	:= app app_src
 
 # Include Make rules applicable to all projects
 include ../Rules.make

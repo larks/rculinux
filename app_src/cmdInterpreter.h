@@ -22,7 +22,7 @@
 #ifndef _CMDINTERPRETER_H
 #define _CMDINTERPRETER_H
 
-#define UINT_MAX 0xffffffff
+//#define UINT_MAX 0xffffffff
 /* the limit for conversion pf the read output is set to 16bit unsigned
  * there is some strange behaviour in the float processing for higher values
  * e.g. unsigned int iHex=0xaaaaaaaa; float fVal=iHex;
@@ -30,13 +30,14 @@
  * unsigned int iHex=0xffffff; float fVal=iHex*2 + 1;
  * fVal=33554432.00 instead of 33554431
  */
-#define INT_RO_MAX 0xffff
-
+//#define INT_RO_MAX 0xffff
+/*
 int executeCommandArgs(int iNofArgs, const char** arrayArg);
 int executeCommandLine(char* pCmdLine);
 int terminateBatchProcessing();
+*/
 
 int printHelp();
-int printInfo();
+//int printInfo();
 
 #endif // _CMDINTERPRETER_H
