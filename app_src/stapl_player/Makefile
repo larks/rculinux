@@ -151,3 +151,7 @@ jamexp.o : \
 	jamutil.h \
 	jamytab.h
 	$(CC) -c jamexp.c $(CFLAGS)
+	
+all	: jam
+clean	:
+	-rm -f jam *.o *.gdb
