@@ -70,10 +70,10 @@ int main(int argc, char **argv)
 	int dowrite=0;
   ///read 
   
-	if(strcmp(cmd,"rd")==0){
+	if( strcmp(cmd,"rd")==0 || strcmp(cmd,"r")==0 || strcmp(cmd,"read")==0 ){
 		doread=1;
 	}
-	if(strcmp(cmd,"wr")==0){
+	if(strcmp(cmd,"wr")==0 || strcmp(cmd,"w")==0 || strcmp(cmd,"write")==0){
 		dowrite=1;
 		data = argv[3];
 	}
@@ -82,6 +82,8 @@ int main(int argc, char **argv)
 	unsigned int offset ;
 
 	offset = parseNumber(addr);
+//	offset <<= 4;
+//	printf("this is the address: %u\n", offset); 
 	intval = parseNumber(data);
 
 	/*

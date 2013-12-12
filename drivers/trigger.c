@@ -109,7 +109,7 @@ static ssize_t rcuc_read(struct file* file_p,
 	u32 word;
 	for(i=0; i<trig_recv_size; i++){
 		//*(buffer+wordoffset) = readl(trig_recv_phys_base+i);
-		word = readl(trig_recv_phys_base + i<<4);
+		word = readl(trig_recv_phys_base + i);
 		if(copy_to_user(buffer, &word, 1)){return -EFAULT;}
 		printk("wordoffset:%lx\n", (long unsigned int)word);
 		wordoffset++;

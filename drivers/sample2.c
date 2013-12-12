@@ -114,7 +114,7 @@ static int dcs_read (u32 begin, u32 size, u32* buff)
   u32 wordoffs=0;
   u32 byteoffs=0;
   for (i=0;i<size/4;i++){ // do the multiples of 4                                                  
-    *(buff+wordoffs) = readl(begin+i*4);
+    *(buff+wordoffs) = readl( (begin+i*4)); // shift four bits to the left
     wordoffs++;
   }
   i*=4;
@@ -211,6 +211,7 @@ static ssize_t sample_read(struct file *filp, char *buffer,
 
   lPos=filp->f_pos;
   u32Offset= lPos;
+  u32Offset<<=4; // Shift address 4 bits because of word alignment
   /*
    * Check that the user has supplied a valid buffer
    */
@@ -241,9 +242,10 @@ static ssize_t sample_read(struct file *filp, char *buffer,
   /////////////////////////////////
   //pu32Source = apbbus_in_virtbase + (0x40000 + u32Offset)/sizeof(u32);
   pu32Source = apbbus_in_virtbase + (u32Offset)/sizeof(u32);
+  
   u32Count = length;
   dcs_read((u32)pu32Source, u32Count, (u32*)buffer);
-  d_printk(0, "read data=0x%x (address = 0x%x)\n", buffer, pu32Source);
+  d_printk(0, "read data=0x%x (address = 0x%x)\n", *buffer, pu32Source);
 
 
   /////////////////////////////////
@@ -277,6 +279,7 @@ static ssize_t sample_write(struct file *filp, const char *buffer,
   
   u32Count= length;
   u32Offset=lPos;
+  u32Offset<<=4; // word alignment
 
   //  pu32Target = apbbus_in_virtbase + (0x40000 + u32Offset)/sizeof(u32);
   pu32Target = apbbus_in_virtbase + (u32Offset)/sizeof(u32);
