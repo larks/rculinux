@@ -1,6 +1,6 @@
-/*
- * This is a user-space application that reads /dev/sample
- * and prints the read characters to stdout
+/*! \brief Main source for rcu-sh
+ ** 
+ ** 
  */
 
 #include <stdio.h>

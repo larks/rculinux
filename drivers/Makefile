@@ -23,7 +23,7 @@ CC		= $(CROSS_COMPILE_APPS)gcc
 
 # Edit the line below to modify a set of loadable modules
 # you need to build 
-obj-m		+= minim.o trigger.o sample2.o
+obj-m		+= minim.o sample2.o
 
 # Define dependencies for a particular module
 # sample-y	:= some.o
