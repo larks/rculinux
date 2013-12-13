@@ -268,14 +268,15 @@ int jam_jtag_io(int tms, int tdi, int read_tdo)
 		jtag_hardware_initialized = TRUE;
 	}
 
-	if (specified_com_port)
+	if (specified_com_port) // What is specified_com_port
 	{
+	/* condition ? value_if_true : value_if_false */
 		ch_data = (char)
-			((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x60);
+			((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x60); /* TDI, TMS mapping?*/
 
 		write(com_port, &ch_data, 1);
 
-		if (read_tdo)
+		if (read_tdo) /*Read TDO*/
 		{
 			ch_data = 0x7e;
 			write(com_port, &ch_data, 1);
@@ -294,7 +295,7 @@ int jam_jtag_io(int tms, int tdi, int read_tdo)
 		}
 
 		ch_data = (char)
-			((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x64);
+			((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x64); /*Also here? TDI, TMS*/
 
 		write(com_port, &ch_data, 1);
 	}
