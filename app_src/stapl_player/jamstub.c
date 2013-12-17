@@ -271,16 +271,17 @@ int jam_jtag_io(int tms, int tdi, int read_tdo)
 	if (specified_com_port) // What is specified_com_port
 	{
 	/* condition ? value_if_true : value_if_false */
-		ch_data = (char)
-			((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x60); /* TDI, TMS mapping?*/
+		ch_data = (char)((tdi ? 0x10 : 0) | (tms ? 0x08 : 0) | 0x0);
+		
+					//((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x60); /* TDI, TMS mapping?*/
 
 		write(com_port, &ch_data, 1);
 
-		if (read_tdo) /*Read TDO*/
+		if (read_tdo) /*Read TDO, GPIO_6*/
 		{
-			ch_data = 0x7e;
-			write(com_port, &ch_data, 1);
-			for (i = 0; (i < 100) && (result != 1); ++i)
+//			ch_data = 0x7e; //??
+//			write(com_port, &ch_data, 1);
+/*			for (i = 0; (i < 100) && (result != 1); ++i)
 			{
 				result = read(com_port, &ch_data, 1);
 			}
@@ -292,10 +293,14 @@ int jam_jtag_io(int tms, int tdi, int read_tdo)
 			{
 				fprintf(stderr, "Error:  BitBlaster not responding\n");
 			}
+*/
+			result = read(com_port, &ch_data, 1);
+			if(result) tdo = ch_data & 0x40;
+			else fprintf(stderr, "Error: JTAG driver tull\n");
 		}
 
-		ch_data = (char)
-			((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x64); /*Also here? TDI, TMS*/
+		ch_data = (char)((tdi ? 0x10 : 0) | (tms ? 0x08 : 0) | 0x4);
+//			((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x64); /*Also here? TDI, TMS*/
 
 		write(com_port, &ch_data, 1);
 	}
