@@ -15,6 +15,9 @@
 // Fixed major number
 static uint radmonc_majorID = 253;
 
+static u32* gpio_in_reg = ((u32 *)  0x40013084);
+static u32* gpio_out_reg = ((u32 *) 0x40013088);
+static u32* gpio_cfg_reg = ((u32*)  0x40013000);
 // pin names
 
 //static struct gpio jtag_radmon[] = {
@@ -53,12 +56,14 @@ static ssize_t radmonjtag_read(struct file* file_p,
 // file_p = com_port, buffer = data, count=1	
 	
 	int ret;
-	ret = gpio_get_value(6);
-	if(copy_to_user(buffer, &ret, 1) != 0)
-		return -EFAULT;
-	else
-	//printk("ret=%d\n", ret);
-	return ret;
+	//ret = gpio_get_value(6);
+	ret = readb(gpio_in_reg);
+//	if(copy_to_user(buffer, &ret, 1) != 0)
+	//	return -EFAULT;
+	//else
+	copy_to_user(buffer, ret, 1);
+	printk("ret=%x\n", ret);
+	return 0;
 }
 // File write
 static ssize_t radmonjtag_write(struct file *file_p, 
@@ -68,10 +73,15 @@ static ssize_t radmonjtag_write(struct file *file_p,
 {
 //	ssize_t write(int fildes, const void *buf, size_t nbytes);
 // ex: write(com_port, &data, 1); where data=0x70;	
-    int ret; int gpio;
-    copy_from_user(&);
+	// I think this should be enough
+    int res;
+    printk("buffer=%s, length=%d\n", &buffer, length);
+    copy_from_user(res, buffer+length-1, 1);
+    writeb(res, gpio_out_reg);
+//    copy_from_user(&);
 //	printk("write not implemented\n");
-	return 0;	
+	printk("res=%d\n", res);
+	return 1;	
 }
 // Define our custom file operation structure
 static struct file_operations radmonc_fops =
@@ -88,6 +98,7 @@ static struct file_operations radmonc_fops =
 */
 static int __init radmonjtagmodule_init(void)
 {
+	int i;
 	int iResult = 0; // holding result of operations
 	iResult = register_chrdev(radmonc_majorID, "radmonc", &radmonc_fops);
 	if (iResult < 0) {
@@ -99,21 +110,27 @@ static int __init radmonjtagmodule_init(void)
 		printk(KERN_INFO "radmonc: module registered, iResult=%d\n", iResult);
 		iResult = gpio_direction_input(6);
 		printk("radmonc: gpio_direction, iResult=%d\n", iResult);
+		// request outputs
+		gpio_request(5, "TRST"); gpio_direction_output(5,1);
+		gpio_request(4, "TMS"); gpio_direction_output(4,0);
+		gpio_request(3, "TDO"); gpio_direction_output(3,0);
+		gpio_request(2, "TCK"); gpio_direction_output(2,0);
 	}			
 	return iResult;
 }
 
 static void __exit radmonjtagmodule_exit(void)
 {
-	int iResult;
+	int iResult; int i;
 	//int iResult;
     unregister_chrdev(radmonc_majorID, "rcuc");
-//    for (i=0; i<5; i++){
-		gpio_free(6);
+    for (i=0; i<5; i++){
+//		gpio_free(6);
 		//if(iResult<0){printk(KERN_WARNING "radmonc: unable to request GPIO_%d\n", i);}
 		//else {printk(KERN_INFO "freed GPIO: i=%d, iResult=%d\n", i, iResult);}
-        printk("Freed GPIO, iResult=%d\n",iResult);
-//	}
+		gpio_free(i);
+        printk("Freed GPIO_%d, iResult=%d\n", i, iResult);
+	}
 
 	printk("Bye bye kernel\n"); // printed when succesfully closed
 }
