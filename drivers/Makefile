@@ -23,7 +23,7 @@ CC		= $(CROSS_COMPILE_APPS)gcc
 
 # Edit the line below to modify a set of loadable modules
 # you need to build 
-obj-m		+= minim.o trigger.o radmonc.o
+obj-m		+= minim.o radmonc.o
 
 # Define dependencies for a particular module
 # sample-y	:= some.o

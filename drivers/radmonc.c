@@ -69,7 +69,7 @@ static int __init radmonjtagmodule_init(void)
 {
 	int i;
 	int iResult = 0; // holding result of operations
-	iResult = register_chrdev(rcuc_majorID, "radmonc", &radmonc_fops);
+	iResult = register_chrdev(radmonc_majorID, "radmonc", &radmonc_fops);
 	if (iResult < 0) {
 		printk(KERN_INFO "radmonc: can't register driver\n");
 		//mrlogmessage(LOG_ERROR, KERN_ERR "module init: can't register driver");
@@ -78,8 +78,12 @@ static int __init radmonjtagmodule_init(void)
 		printk(KERN_INFO "radmonc: module registerd\n");
 		for (i=0; i<5; i++){
 			iResult = gpio_request(i, "GPIO Jtag");
-			if(iResult<0){printk(KERN_WARNING "radmonc: unable to request GPIO_%d\n", i);}
-			else {printk(KERN_INFO "requested GPIO: i=%d, iResult=%d\n", i, iResult);}
+			if(iResult<0){
+                printk(KERN_WARNING "radmonc: unable to request GPIO_%d\n", i);
+            }
+			else{
+                printk(KERN_INFO "requested GPIO: i=%d, iResult=%d\n", i, iResult);
+            }
 		}
 	}			
 	return iResult;
@@ -88,12 +92,13 @@ static int __init radmonjtagmodule_init(void)
 static void __exit radmonjtagmodule_exit(void)
 {
 	int i;
-	int iResult;
+	//int iResult;
     unregister_chrdev(radmonc_majorID, "rcuc");
     for (i=0; i<5; i++){
-		iResult = gpio_free(i);
-		if(iResult<0){printk(KERN_WARNING "radmonc: unable to request GPIO_%d\n", i);}
-		else {printk(KERN_INFO "freed GPIO: i=%d, iResult=%d\n", i, iResult);}
+		gpio_free(i);
+		//if(iResult<0){printk(KERN_WARNING "radmonc: unable to request GPIO_%d\n", i);}
+		//else {printk(KERN_INFO "freed GPIO: i=%d, iResult=%d\n", i, iResult);}
+        printk("Freed GPIO_%d\n",i);
 	}
 
 	printk("Bye bye kernel\n"); // printed when succesfully closed
