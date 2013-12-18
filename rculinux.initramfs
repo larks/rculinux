@@ -110,6 +110,7 @@ nod /dev/sample 0600 0 0 c 166 0
 # Debug tools
 file /bin/peekpoke ${INSTALL_ROOT}/projects/${SAMPLE}/peekpoke/peekpoke 755 0 0
 nod /dev/rcuc 0600 0 0 c 254 0
+nod /dev/sample2 0600 0 0 c 177 0
 nod /dev/radmonc 0600 0 0 c 253 0
 
 # Dropbear ssh server
