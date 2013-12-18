@@ -55,7 +55,7 @@ static ssize_t radmonjtag_read(struct file* file_p,
 	byte = readb((u8 *)gpio_in_reg); // we are only reading one and same byte at all times
 	copy_to_user(buffer, byte, 1);
 //	printk("ret=%x\n", ret);
-	return length;
+	return count;
 }
 
 // File write
