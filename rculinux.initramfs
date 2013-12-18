@@ -113,7 +113,7 @@ file /bin/peekpoke ${INSTALL_ROOT}/projects/${SAMPLE}/peekpoke/peekpoke 755 0 0
 file /bin/rcu-sh ${INSTALL_ROOT}/projects/${SAMPLE}/app_src/rcu-sh 755 0 0
 nod /dev/rcuc 0600 0 0 c 254 0
 nod /dev/sample2 0600 0 0 c 177 0
-
+nod /dev/radmoc 0600 0 0 c 253 0
 
 # Dropbear ssh server
 dir /etc/dropbear 0755 0 0
