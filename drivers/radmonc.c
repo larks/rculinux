@@ -51,37 +51,26 @@ static ssize_t radmonjtag_read(struct file* file_p,
                          size_t count, 
                          loff_t* f_pos)
 {
-// size_t read(int fildes, void *buf, size_t nbytes);
-// read(com_port, &data,1), ex where data=0x50
-// file_p = com_port, buffer = data, count=1	
-	
-	int ret;
-	//ret = gpio_get_value(6);
-	ret = readb(gpio_in_reg);
-//	if(copy_to_user(buffer, &ret, 1) != 0)
-	//	return -EFAULT;
-	//else
-	copy_to_user(buffer, ret, 1);
-	printk("ret=%x\n", ret);
-	return 0;
+	u8 byte;
+	byte = readb((u8 *)gpio_in_reg); // we are only reading one and same byte at all times
+	copy_to_user(buffer, byte, 1);
+//	printk("ret=%x\n", ret);
+	return length;
 }
+
 // File write
 static ssize_t radmonjtag_write(struct file *file_p, 
                           const char __user *buffer, 
                           size_t length, 
                           loff_t* f_pos)
 {
-//	ssize_t write(int fildes, const void *buf, size_t nbytes);
-// ex: write(com_port, &data, 1); where data=0x70;	
-	// I think this should be enough
-    int res;
-    printk("buffer=%s, length=%d\n", &buffer, length);
-    copy_from_user(res, buffer+length-1, 1);
-    writeb(res, gpio_out_reg);
-//    copy_from_user(&);
-//	printk("write not implemented\n");
-	printk("res=%d\n", res);
-	return 1;	
+    u8 byte;
+    copy_from_user(&byte, buffer, 1); // writing the same byte each time
+	printk("before: %x", byte);
+    writeb(byte, gpio_out_reg);
+    printk("after: %x", *gpio_out_reg);
+//	printk("res=%d\n", res);
+	return length;	
 }
 // Define our custom file operation structure
 static struct file_operations radmonc_fops =
