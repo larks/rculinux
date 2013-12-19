@@ -16,6 +16,8 @@ cmdInterpreter.o : cmdInterpreter.c $(DEPS)
 rcu-sh		: $(rcu_sh_OBJ)
 		  $(CC) $(LDFLAGS) -o rcu-sh $(rcu_sh_OBJ)
 
+jtagtest    : jtagtest.c
+		  $(CC) jtagtest.c -o jtagtest $(CFLAGS)
 
 # These are flags/tools used to build user-space programs
 CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall

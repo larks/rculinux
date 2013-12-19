@@ -34,10 +34,8 @@ static u32* gpio_cfg_reg = ((u32*)  0x40013000);
 // File open
 static int radmonjtag_open(struct inode* inode, struct file* file_p)
 {
-	int i;
-	printk("hello cat!\n");
-	i = gpio_get_value(6);
-	printk("gpio_get_value=0x%X\n", i);
+	//int i;
+	//i = gpio_get_value(6);
 	return 0;
 }
 // File close 
@@ -52,25 +50,31 @@ static ssize_t radmonjtag_read(struct file* file_p,
                          loff_t* f_pos)
 {
 	u8 byte;
-	byte = readb((u8 *)gpio_in_reg); // we are only reading one and same byte at all times
-	copy_to_user(buffer, byte, 1);
-//	printk("ret=%x\n", ret);
+	/* We are only caring about tdo from radmon, so this is sufficient */
+	byte = readl(gpio_in_reg); // we are only reading one and same byte at all times
+	if(copy_to_user(buffer, &byte, 1)) return -EFAULT;
+	/* Check if we read our byte */
+	if(*f_pos == 0){
+		*f_pos+=1;
+		return 1;
+	} else {
+		return 0;
+	}
+	
 	return count;
 }
 
 // File write
 static ssize_t radmonjtag_write(struct file *file_p, 
                           const char __user *buffer, 
-                          size_t length, 
+                          size_t count, 
                           loff_t* f_pos)
 {
     u8 byte;
-    copy_from_user(&byte, buffer, 1); // writing the same byte each time
-	printk("before: %x", byte);
-    writeb(byte, gpio_out_reg);
-    printk("after: %x", *gpio_out_reg);
-//	printk("res=%d\n", res);
-	return length;	
+    if(copy_from_user(&byte, buffer+count-1, 1))
+    	  return -EFAULT;
+    outl(byte, gpio_out_reg);
+	return 1;	
 }
 // Define our custom file operation structure
 static struct file_operations radmonc_fops =
@@ -96,9 +100,9 @@ static int __init radmonjtagmodule_init(void)
 	}
 	else{
 		iResult = gpio_request(6, "TDI");
-		printk(KERN_INFO "radmonc: module registered, iResult=%d\n", iResult);
+//		printk(KERN_INFO "radmonc: module registered, iResult=%d\n", iResult);
 		iResult = gpio_direction_input(6);
-		printk("radmonc: gpio_direction, iResult=%d\n", iResult);
+//		printk("radmonc: gpio_direction, iResult=%d\n", iResult);
 		// request outputs
 		gpio_request(5, "TRST"); gpio_direction_output(5,1);
 		gpio_request(4, "TMS"); gpio_direction_output(4,0);
