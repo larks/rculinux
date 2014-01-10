@@ -14,7 +14,7 @@ CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb
 LDFLAGS		:= -mcpu=cortex-m3 -mthumb
 CC			= $(CROSS_COMPILE_APPS)gcc
 
-
+EXE = jam
 
 OBJS = \
 	jamstub.o \
@@ -28,14 +28,15 @@ OBJS = \
 	jamcomp.o \
 	fs2jtag.o \
 	jamutil.o \
-	jamexp.o
+	jamexp.o \
+	jamgpio.o
 
 #.c.o :
 #	cl /W4 /c /ML /DWINNT /DFS2 $<
 
 # LINK: add appropriate linker command here
 
-jam : $(OBJS)
+$(EXE) : $(OBJS)
 	$(CC) $(LDFLAGS) -o jam $(OBJS)
 
 # Dependencies:
@@ -43,7 +44,9 @@ jam : $(OBJS)
 jamstub.o : \
 	jamstub.c \
 	jamport.h \
-	jamexprt.h
+	jamexprt.h \
+	jamgpio.c \
+	jamgpio.h
 	$(CC) -c jamstub.c $(CFLAGS)
 
 jamexec.o : \

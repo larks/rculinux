@@ -68,15 +68,35 @@ int main(int argc, char **argv)
 	
 	int doread=0;
 	int dowrite=0;
-  ///read 
-  
-	if( strcmp(cmd,"rd")==0 || strcmp(cmd,"r")==0 || strcmp(cmd,"read")==0 ){
+
+	/* TODO: Change to switch statement */
+	
+	//switch(cmd)
+	
+	
+	
+	// read  
+	if( (strcmp(cmd,"rd")==0 || strcmp(cmd,"r")==0 || strcmp(cmd,"read")==0) ){
 		doread=1;
+		dowrite=0;
 	}
-	if(strcmp(cmd,"wr")==0 || strcmp(cmd,"w")==0 || strcmp(cmd,"write")==0){
+	// write
+	if( (strcmp(cmd,"wr")==0 || strcmp(cmd,"w")==0 || strcmp(cmd,"write")==0) ){
 		dowrite=1;
+		doread=0;
 		data = argv[3];
 	}
+	if( strcmp(cmd, "c") ){
+		dowrite=1;
+		doread=0;
+		data="0x0";
+	}
+	
+	// batch
+	if( (strcmp(cmd,"b") == 0 || strcmp(cmd,"batch")) ){
+		// do some file buffering
+	}
+	
 
 	unsigned int intval ;
 	unsigned int offset ;

@@ -261,47 +261,41 @@ int jam_jtag_io(int tms, int tdi, int read_tdo)
 	int i = 0;
 	int result = 0;
 	char ch_data = 0;
+	char clkd_ch_data = 0;
 
 	if (!jtag_hardware_initialized)
 	{
 		initialize_jtag_hardware();
 		jtag_hardware_initialized = TRUE;
 	}
-
-	if (specified_com_port) // What is specified_com_port
+	/* Check if jtag file is opened */
+	if (specified_com_port)
 	{
+	//	fprintf(stdout, "%s\n",serial_port_name);
 	/* condition ? value_if_true : value_if_false */
-		ch_data = (char)((tdi ? 0x10 : 0) | (tms ? 0x08 : 0) | 0x0);
-		
-					//((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x60); /* TDI, TMS mapping?*/
+		ch_data = (char)((tdi ? 0x8 : 0) | (tms ? 0x10 : 0) | 0x20); // check for output
+		write(com_port, &ch_data, 1); // write data to ports
 
-		write(com_port, &ch_data, 1);
 
-		if (read_tdo) /*Read TDO, GPIO_6*/
-		{
-//			ch_data = 0x7e; //??
-//			write(com_port, &ch_data, 1);
-/*			for (i = 0; (i < 100) && (result != 1); ++i)
-			{
-				result = read(com_port, &ch_data, 1);
-			}
-			if (result == 1)
-			{
-				tdo = ch_data & 0x01;
-			}
-			else
-			{
-				fprintf(stderr, "Error:  BitBlaster not responding\n");
-			}
-*/
-			result = read(com_port, &ch_data, 1);
-			if(result) tdo = ch_data & 0x40;
-			else fprintf(stderr, "Error: JTAG driver tull\n");
-		}
 
-		ch_data = (char)((tdi ? 0x10 : 0) | (tms ? 0x08 : 0) | 0x4);
+//		ch_data = (char)((tdi ? 0x10 : 0) | (tms ? 0x08 : 0) | 0x4);// | 0x20);
 //			((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x64); /*Also here? TDI, TMS*/
-
+		//clkd_ch_data = (char) ch_data | 0x4;
+		ch_data = (char)((tdi ? 0x8 : 0) | (tms ? 0x10 : 0) | 0x4 | 0x20);
+		/*Clock the data*/
+		write(com_port, &ch_data, 1);
+		
+		
+				if (read_tdo) /*Read TDO, GPIO_6*/
+		{
+			result = read(com_port, &ch_data, 1);
+			if(result) tdo = (ch_data & 0x40) ? 0:1; //inverted
+			else fprintf(stderr, "Error: Could not read TDO\n");
+		}
+		
+		
+		
+        ch_data = (char)((tdi ? 0x10 : 0) | (tms ? 0x08 : 0) | 0x0 | 0x20);
 		write(com_port, &ch_data, 1);
 	}
 	else
@@ -533,6 +527,7 @@ int jam_vector_io
 	if (!jtag_hardware_initialized)
 	{
 		initialize_jtag_hardware();
+
 		jtag_hardware_initialized = TRUE;
 	}
 
@@ -1532,9 +1527,11 @@ void initialize_jtag_hardware()
 		}
 		else
 		{
+			fprintf(stdout, "init jtag\n");
+		/*
 			int i = 0, result = 0;
 			char data = 0;
-
+		
 			data = 0x7e;
 			write(com_port, &data, 1);
 
@@ -1545,12 +1542,13 @@ void initialize_jtag_hardware()
 
 			if (result == 1)
 			{
-				data = 0x70; write(com_port, &data, 1); /* TDO echo off */
-				data = 0x72; write(com_port, &data, 1); /* auto LEDs off */
-				data = 0x74; write(com_port, &data, 1); /* ERROR LED off */
-				data = 0x76; write(com_port, &data, 1); /* DONE LED off */
-				data = 0x60; write(com_port, &data, 1); /* signals low */
-			}
+		*/
+			//	data = 0x70; write(com_port, &data, 1); /* TDO echo off */
+				//data = 0x72; write(com_port, &data, 1); /* auto LEDs off */
+		//		data = 0x74; write(com_port, &data, 1); /* ERROR LED off */
+			//	data = 0x76; write(com_port, &data, 1); /* DONE LED off */
+			//	data = 0x60; write(com_port, &data, 1); /* signals low */
+			/*}
 			else
 			{
 				fprintf(stderr, "Error: BitBlaster is not responding on %s\n",
@@ -1558,6 +1556,18 @@ void initialize_jtag_hardware()
 				close(com_port);
 				com_port = -1;
 			}
+		*/
+		char data = 0;
+	
+		write(com_port, &data, 1);
+		data |= 0x4;
+		write(com_port, &data, 1);
+		data = 0x20;
+		write(com_port, &data, 1);
+		
+	
+		
+		
 		}
 	}
 	else

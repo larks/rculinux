@@ -54,12 +54,12 @@ static ssize_t radmonjtag_read(struct file* file_p,
 	byte = readl(gpio_in_reg); // we are only reading one and same byte at all times
 	if(copy_to_user(buffer, &byte, 1)) return -EFAULT;
 	/* Check if we read our byte */
-	if(*f_pos == 0){
-		*f_pos+=1;
-		return 1;
-	} else {
-		return 0;
-	}
+	//if(*f_pos == 0){
+	//	*f_pos+=1;
+	//	return 1;
+	//} else {
+	//	return 0;
+	//}
 	
 	return count;
 }
@@ -104,7 +104,7 @@ static int __init radmonjtagmodule_init(void)
 		iResult = gpio_direction_input(6);
 //		printk("radmonc: gpio_direction, iResult=%d\n", iResult);
 		// request outputs
-		gpio_request(5, "TRST"); gpio_direction_output(5,1);
+		gpio_request(5, "TRST"); gpio_direction_output(5,0);
 		gpio_request(4, "TMS"); gpio_direction_output(4,0);
 		gpio_request(3, "TDO"); gpio_direction_output(3,0);
 		gpio_request(2, "TCK"); gpio_direction_output(2,0);

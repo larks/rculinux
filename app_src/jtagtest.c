@@ -32,6 +32,14 @@ int main()
 	else
 		fprintf(stdout, "wrote %x to output?\n", ch_data);
 	
+
+	while(1){
+		ch_data = (char)(0x04 | 0x10);		
+		write(fd, &ch_data, 1);
+		ch_data = (char)(0x08);
+		write(fd, &ch_data, 1);
+	}
+	
 	
 	if(fd>=0) close(fd);
 	

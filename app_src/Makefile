@@ -19,8 +19,11 @@ rcu-sh		: $(rcu_sh_OBJ)
 jtagtest    : jtagtest.c
 		  $(CC) jtagtest.c -o jtagtest $(CFLAGS)
 
+clocktest	: clocktest.c
+		  $(CC) clocktest.c -o clocktest $(CFLAGS)
+
 # These are flags/tools used to build user-space programs
-CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall
+CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall -lm
 LDFLAGS		:= -mcpu=cortex-m3 -mthumb -Wall
 CC		= $(CROSS_COMPILE_APPS)gcc
 
