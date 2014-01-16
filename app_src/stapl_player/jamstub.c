@@ -271,7 +271,6 @@ int jam_jtag_io(int tms, int tdi, int read_tdo)
 	/* Check if jtag file is opened */
 	if (specified_com_port)
 	{
-	//	fprintf(stdout, "%s\n",serial_port_name);
 	/* condition ? value_if_true : value_if_false */
 		ch_data = (char)((tdi ? 0x8 : 0) | (tms ? 0x10 : 0) | 0x20); // check for output
 		write(com_port, &ch_data, 1); // write data to ports
@@ -283,9 +282,6 @@ int jam_jtag_io(int tms, int tdi, int read_tdo)
 			else fprintf(stderr, "Error: Could not read TDO\n");
 		}
 
-//		ch_data = (char)((tdi ? 0x10 : 0) | (tms ? 0x08 : 0) | 0x4);// | 0x20);
-//			((tdi ? 0x01 : 0) | (tms ? 0x02 : 0) | 0x64); /*Also here? TDI, TMS*/
-		//clkd_ch_data = (char) ch_data | 0x4;
 		ch_data = (char)((tdi ? 0x8 : 0) | (tms ? 0x10 : 0) | 0x4 | 0x20);
 		/*Clock the data*/
 		write(com_port, &ch_data, 1);
@@ -294,28 +290,7 @@ int jam_jtag_io(int tms, int tdi, int read_tdo)
 	}
 	else
 	{
-#if PORT == WINDOWS || PORT == DOS
-		data = (alternative_cable_l ? ((tdi ? 0x01 : 0) | (tms ? 0x04 : 0)) :
-		       (alternative_cable_x ? ((tdi ? 0x01 : 0) | (tms ? 0x04 : 0) | 0x10) :
-		       ((tdi ? 0x40 : 0) | (tms ? 0x02 : 0))));
-
-		write_byteblaster(0, data);
-
-		if (read_tdo)
-		{
-			tdo = read_byteblaster(1);
-			tdo = (alternative_cable_l ? ((tdo & 0x40) ? 1 : 0) :
-			      (alternative_cable_x ? ((tdo & 0x10) ? 1 : 0) :
-			      ((tdo & 0x80) ? 0 : 1)));
-		}
-
-		write_byteblaster(0, data | (alternative_cable_l ? 0x02 : (alternative_cable_x ? 0x02: 0x01)));
-
-		write_byteblaster(0, data);
-#else
-		/* parallel port interface not available */
 		tdo = 0;
-#endif
 	}
 
 	if (tck_delay != 0) delay_loop(tck_delay);

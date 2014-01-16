@@ -28,22 +28,25 @@ static u32* gpio_cfg_reg = ((u32*)  0x40013000);
 //		{6, GPIOF_IN_INIT_LOW, "Radmon TDI"} /*TDI to Radmon TDO*/
 //};
 
-/*
-* Here comes file operation functions:
-*/
-// File open
+/*!
+ * Open module
+ */
 static int radmonjtag_open(struct inode* inode, struct file* file_p)
 {
 	//int i;
 	//i = gpio_get_value(6);
 	return 0;
 }
-// File close 
+/*!
+ * Closing module
+ */
 static int radmonjtag_close(struct inode* inode, struct file* file_p)
 {
 	return 0;
 }
-// File read
+/*!
+ * Read module
+ */
 static ssize_t radmonjtag_read(struct file* file_p, 
                          char __user* buffer, 
                          size_t count, 
@@ -53,18 +56,13 @@ static ssize_t radmonjtag_read(struct file* file_p,
 	/* We are only caring about tdo from radmon, so this is sufficient */
 	byte = readl(gpio_in_reg); // we are only reading one and same byte at all times
 	if(copy_to_user(buffer, &byte, 1)) return -EFAULT;
-	/* Check if we read our byte */
-	//if(*f_pos == 0){
-	//	*f_pos+=1;
-	//	return 1;
-	//} else {
-	//	return 0;
-	//}
 	
 	return count;
 }
 
-// File write
+/*!
+ * Write to module
+ */
 static ssize_t radmonjtag_write(struct file *file_p, 
                           const char __user *buffer, 
                           size_t count, 
@@ -76,7 +74,10 @@ static ssize_t radmonjtag_write(struct file *file_p,
     outl(byte, gpio_out_reg);
 	return 1;	
 }
-// Define our custom file operation structure
+
+/*!
+ * File operation structure
+ */
 static struct file_operations radmonc_fops =
 {
 	.owner = THIS_MODULE,
@@ -86,9 +87,9 @@ static struct file_operations radmonc_fops =
 	.write = radmonjtag_write
 };
 
-/*
-* Module operation functions
-*/
+/*!
+ * Module operation functions
+ */
 static int __init radmonjtagmodule_init(void)
 {
 	int i;
@@ -116,7 +117,7 @@ static void __exit radmonjtagmodule_exit(void)
 {
 	int iResult; int i;
 	//int iResult;
-    unregister_chrdev(radmonc_majorID, "rcuc");
+    unregister_chrdev(radmonc_majorID, "radmonc");
     for (i=0; i<5; i++){
 //		gpio_free(6);
 		//if(iResult<0){printk(KERN_WARNING "radmonc: unable to request GPIO_%d\n", i);}
