@@ -256,41 +256,46 @@ int jam_seek(long offset)
 
 int jam_jtag_io(int tms, int tdi, int read_tdo)
 {
+	int data = 0;
+	int tdo = 0;
+	int i = 0;
+	int result = 0;
+	char ch_data = 0;
+	char clkd_ch_data = 0;
 
-//	int data = 0;
-//	int tdo = 0;
-
-	tdi=!!tdi;
-	/*
-	struct timespec pause_zero, pause_one, remains_zero, remains_one;
-		pause_zero.tv_sec=0;
-		pause_zero.tv_nsec=50;
-		pause_one.tv_sec=0;
-		pause_one.tv_nsec=50;
-	*/
-	//nanosleep(&time_pause, &remains);
-	
-	if(!jtag_hardware_initialized){
+	if (!jtag_hardware_initialized)
+	{
 		initialize_jtag_hardware();
 		jtag_hardware_initialized = TRUE;
 	}
-	//gpio_clear_tck();
-	// setting TDI and TMS
-	if(tms) gpio_set_tms();
-	else gpio_clear_tms();	
-	if(tdi) gpio_set_tdi();
-	else gpio_clear_tdi();
-	// clock and read tdo
-	gpio_set_tck();
-	
-	int tdo = 0;
-	if(read_tdo) tdo = gpio_status_tdo();
-	
-	//nanosleep(&pause_one, &pause_one);
-	gpio_clear_tck();
-	//nanosleep(&pause_zero, &pause_zero);	
-//	lars_delay();
-	return(tdo);
+	/* Check if jtag file is opened */
+	if (specified_com_port)
+	{
+	/* condition ? value_if_true : value_if_false */
+		ch_data = (char)((tdi ? 0x8 : 0) | (tms ? 0x10 : 0) | 0x20); // check for output
+		write(com_port, &ch_data, 1); // write data to ports
+
+		if (read_tdo) /*Read TDO, GPIO_6*/
+		{
+			result = read(com_port, &ch_data, 1);
+			if(result) tdo = (ch_data & 0x40) ? 1:0;
+			else fprintf(stderr, "Error: Could not read TDO\n");
+		}
+
+		ch_data = (char)((tdi ? 0x8 : 0) | (tms ? 0x10 : 0) | 0x4 | 0x20);
+		/*Clock the data*/
+		write(com_port, &ch_data, 1);
+        ch_data = (char)((tdi ? 0x10 : 0) | (tms ? 0x08 : 0) | 0x0 | 0x20);
+		write(com_port, &ch_data, 1);
+	}
+	else
+	{
+		tdo = 0;
+	}
+
+	if (tck_delay != 0) delay_loop(tck_delay);
+
+	return (tdo);
 }
 
 void jam_message(char *message_text)
@@ -407,10 +412,6 @@ void jam_export_boolean_array(char *key, unsigned char *data, long count)
 
 void jam_delay(long microseconds)
 {
-
-	usleep(microseconds);
-	return;
-
 #ifdef FS2
 	U32 hz;
 	AbiGetTckRate(&hz);
@@ -667,8 +668,7 @@ DWORD get_tick_count(void)
 	tick_count *= 55L;	/* convert to milliseconds */
 #else
 	/* assume clock() function returns microseconds */
-	//tick_count = (DWORD) (clock() / 1000L);
-	tick_count = (DWORD) (clock()*1000 / CLOCKS_PER_SEC);
+	tick_count = (DWORD) (clock() / 1000L);
 #endif
 
 	return (tick_count);
@@ -679,7 +679,6 @@ DWORD get_tick_count(void)
 
 void calibrate_delay(void)
 {
-/*
 	int sample = 0;
 	int count = 0;
 	DWORD tick_count1 = 0L;
@@ -703,8 +702,6 @@ void calibrate_delay(void)
 #else
 	one_ms_delay = 1000L;
 #endif
-*/
-	one_ms_delay = 1000L;
 }
 
 char *error_text[] =
@@ -1203,10 +1200,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (jtag_hardware_initialized){
-		close_jtag_hardware();
-		jtag_hardware_initialized = FALSE;
-	}
+	if (jtag_hardware_initialized) close_jtag_hardware();
 
 	if (workspace != NULL) free(workspace);
 	if (file_buffer != NULL) free(file_buffer);
@@ -1492,21 +1486,165 @@ void get_lpt_addresses_from_registry()
 
 void initialize_jtag_hardware()
 {
-#if PORT == UNIX
-	interface_init();
-	gpio_clear_tck();
-	gpio_clear_trst();
-	gpio_set_tck();
-	gpio_set_trst();
+	if (specified_com_port)
+	{
+		com_port = open(serial_port_name, O_RDWR);
+		if (com_port == -1)
+		{
+			fprintf(stderr, "Error: can't open serial port \"%s\"\n",
+				serial_port_name);
+		}
+		else
+		{
+			fprintf(stdout, "init jtag\n");
+		/*
+			int i = 0, result = 0;
+			char data = 0;
+		
+			data = 0x7e;
+			write(com_port, &data, 1);
+
+			for (i = 0; (i < 100) && (result != 1); ++i)
+			{
+				result = read(com_port, &data, 1);
+			}
+
+			if (result == 1)
+			{
+		*/
+			//	data = 0x70; write(com_port, &data, 1); /* TDO echo off */
+				//data = 0x72; write(com_port, &data, 1); /* auto LEDs off */
+		//		data = 0x74; write(com_port, &data, 1); /* ERROR LED off */
+			//	data = 0x76; write(com_port, &data, 1); /* DONE LED off */
+			//	data = 0x60; write(com_port, &data, 1); /* signals low */
+			/*}
+			else
+			{
+				fprintf(stderr, "Error: BitBlaster is not responding on %s\n",
+					serial_port_name);
+				close(com_port);
+				com_port = -1;
+			}
+		*/
+		char data = 0;
+	
+		write(com_port, &data, 1);
+		data |= 0x4;
+		write(com_port, &data, 1);
+		data = 0x20;
+		write(com_port, &data, 1);
+		
+	
+		
+		
+		}
+	}
+	else
+	{
+#if PORT == WINDOWS || PORT == DOS
+
+#if PORT == WINDOWS
+		if (windows_nt)
+		{
+			initialize_nt_driver();
+		}
+		else
+		{
+#ifdef __BORLANDC__
+			fprintf(stderr, "Error: parallel port access is not available\n");
+#else
+			if (!specified_lpt_addr)
+			{
+				get_lpt_addresses_from_registry();
+
+				lpt_addr = 0;
+
+				if (specified_lpt_port)
+				{
+					lpt_addr = lpt_addresses_from_registry[lpt_port - 1];
+				}
+
+				if (lpt_addr == 0)
+				{
+					if (lpt_addresses_from_registry[3] != 0)
+						lpt_addr = lpt_addresses_from_registry[3];
+					if (lpt_addresses_from_registry[2] != 0)
+						lpt_addr = lpt_addresses_from_registry[2];
+					if (lpt_addresses_from_registry[1] != 0)
+						lpt_addr = lpt_addresses_from_registry[1];
+					if (lpt_addresses_from_registry[0] != 0)
+						lpt_addr = lpt_addresses_from_registry[0];
+				}
+
+				if (lpt_addr == 0)
+				{
+					if (specified_lpt_port)
+					{
+						lpt_addr = lpt_addr_table[lpt_port - 1];
+					}
+					else
+					{
+						lpt_addr = lpt_addr_table[0];
+					}
+				}
+			}
+			initial_lpt_ctrl = windows_nt ? 0x0c : read_byteblaster(2);
 #endif
+		}
+#endif
+
+#if PORT == DOS
+		/*
+		*	Read word at specific memory address to get the LPT port address
+		*/
+		WORD *bios_address = (WORD *) 0x00400008;
+
+		if (!specified_lpt_addr)
+		{
+			lpt_addr = bios_address[lpt_port - 1];
+
+			if ((lpt_port != 0x278) &&
+				(lpt_port != 0x27c) &&
+				(lpt_port != 0x378) &&
+				(lpt_port != 0x37c) &&
+				(lpt_port != 0x3b8) &&
+				(lpt_port != 0x3bc))
+			{
+				lpt_addr = lpt_addr_table[lpt_port - 1];
+			}
+		}
+		initial_lpt_ctrl = read_byteblaster(2);
+#endif
+
+		/* set AUTO-FEED low to enable ByteBlaster (value to port inverted) */
+		/* set DIRECTION low for data output from parallel port */
+		write_byteblaster(2, (initial_lpt_ctrl | 0x02) & 0xDF);
+#endif
+	}
 }
 
-// Where did this function go actually?
 void close_jtag_hardware()
 {
-#if PORT == UNIX
-	interface_exit();
+	if (specified_com_port)
+	{
+		if (com_port != -1) close(com_port);
+	}
+	else
+	{
+#if PORT == WINDOWS || PORT == DOS
+		/* set AUTO-FEED high to disable ByteBlaster */
+		write_byteblaster(2, initial_lpt_ctrl & 0xfd);
+
+#if PORT == WINDOWS
+		if (windows_nt && (nt_device_handle != INVALID_HANDLE_VALUE))
+		{
+			if (port_io_count > 0) flush_ports();
+
+			CloseHandle(nt_device_handle);
+		}
 #endif
+#endif
+	}
 }
 
 #if PORT == WINDOWS
