@@ -789,7 +789,7 @@ static uint16_t wait_for_request_completion(void)
 {
     while(g_request_in_progress)
     {
-        ;
+        fprintf(stdout, "wait_for_rrequest_completion()\n");
     }
     
     return g_last_response_length;

@@ -34,6 +34,8 @@ int main(void){
     
     fprintf(stdout, "CONTROL: 0x%x, STATUS: 0x%x, INT_ENABLE: 0x%x\n", 
     COMBLK->CONTROL, COMBLK->STATUS, COMBLK->INT_ENABLE);
+    fprintf(stdout, "Addresses -- COMBLK: %p, CTRL: %p, STATUS: %p, INT_ENABLE: %p\n",
+    (void*)COMBLK, &COMBLK->CONTROL, &COMBLK->STATUS, &COMBLK->INT_ENABLE);
 	
 	
 	fprintf(stdout, "mmap init done.\n");
@@ -44,7 +46,7 @@ int main(void){
     if(MSS_SYS_SUCCESS == status)
     {
         fprintf(stdout, "Device serial number: ");
-        for(i=0; i<16; i++){fprintf("%s", (char)serial_number[i]);}
+        for(i=0; i<16; i++){fprintf(stdout, "%d", serial_number[i]);}
         fprintf(stdout, "\n");
     }	
 
@@ -90,30 +92,46 @@ static int register_init(void)
 	/* Map SYSREG to mem */
 	//struct SYSREG_TypeDef * SYSREG;
 	
-  	SYSREG = mmap(NULL, 692, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, (off_t)SYSREG);
+  	SYSREG = mmap(NULL, 692, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, (off_t)SYSREG_BASE); // fixed mistake, forgot _BASE
 	if(SYSREG==MAP_FAILED) {
 		fprintf(stderr, "SYSREG map failed\n");
     	exit(-1);
 	}
 	else fprintf(stdout, "Mapped SYSREG\n");
-	
+	/* Soft reset on comblk */
 	SYSREG->SOFT_RST_CR = SYSREG_COMBLK_SOFTRESET_MASK;
 	SYSREG->SOFT_RST_CR &= ~(SYSREG_COMBLK_SOFTRESET_MASK);
 	fprintf(stdout, "reset comblk: 0x%x\n", SYSREG->SOFT_RST_CR);
+	
+	/* Map NVIC (not working, protected from user space i guess */
+	/*
+	NVIC = mmap(NULL, 4308, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, (off_t)NVIC_BASE);
+	if(NVIC==MAP_FAILED) {
+		fprintf(stderr, "NVIC map failed\n");
+    	exit(-1);
+	}
+	else fprintf(stdout, "Mapped NVIC\n");
+	*/
 	
   	return 0;
 }
 
 static int register_exit(void)
 {
-	if( munmap(COMBLK, sizeof(COMBLK)) < 0 ){
+	if( munmap(COMBLK, 96) < 0 ){
 		fprintf(stderr, "munmap(COMBLK) failed\n");
 		exit(-1);
 	}
-	else if( munmap(SYSREG, sizeof(SYSREG)) < 0 ){
+	else if( munmap(SYSREG, 692) < 0 ){
 		fprintf(stderr, "munmap(SYSREG) failed\n");
 		exit(-1);
 	}
+	/*
+	else if( munmap(NVIC, 4308) < 0 ){
+		fprintf(stderr, "munmap(SYSREG) failed\n");
+		exit(-1);
+	}
+	*/
 	else fprintf(stdout, "munmap() success\n");
 	return 0;
 }

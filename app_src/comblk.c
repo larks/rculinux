@@ -10,6 +10,7 @@
 #include "comblk.h"
 //#include "../../CMSIS/mss_assert.h"
 #include <assert.h>
+#include <stdio.h>
 
 /*==============================================================================
  *
@@ -73,6 +74,7 @@ static volatile uint16_t g_comblk_response_idx = 0u;
 static comblk_completion_handler_t g_comblk_completion_handler = 0;
 
 /*typedef uint32_t (*comblk_page_handler_t)(uint8_t const ** pp_next_page);
+redefinition error
 */
 static uint32_t (*g_comblk_page_handler)(uint8_t const ** pp_next_page) = 0;
 
@@ -82,6 +84,14 @@ static uint8_t g_comblk_state = COMBLK_IDLE;
 
 static comblk_async_event_handler_t g_async_event_handler = 0;
 
+
+/* Interrupt functions */
+static inline void NVIC_EnableIRQ(uint32_t);
+
+static inline void NVIC_DisableIRQ(uint32_t);
+
+static inline void NVIC_ClearPendingIRQ(uint32_t);
+
 /*==============================================================================
  *
  */
@@ -90,9 +100,9 @@ void MSS_COMBLK_init(comblk_async_event_handler_t async_event_handler)
     /*
      * Disable and clear previous interrupts.
      */
-    ////NVIC_DisableIRQ(ComBlk_IRQn);
+    //NVIC_DisableIRQ(ComBlk_IRQn);
     COMBLK->INT_ENABLE = 0u;
-    ////NVIC_ClearPendingIRQ(ComBlk_IRQn);
+    //NVIC_ClearPendingIRQ(ComBlk_IRQn);
     
     g_async_event_handler = async_event_handler;
     
@@ -121,7 +131,7 @@ void MSS_COMBLK_init(comblk_async_event_handler_t async_event_handler)
      */
     COMBLK->INT_ENABLE &= ~TXTOKAY_MASK;
     COMBLK->INT_ENABLE |= RCVOKAY_MASK;
-    ////NVIC_EnableIRQ(ComBlk_IRQn);
+    //NVIC_EnableIRQ(ComBlk_IRQn);
 }
 
 /*==============================================================================
@@ -141,14 +151,15 @@ void MSS_COMBLK_send_cmd_with_ptr
     /*--------------------------------------------------------------------------
      * Disable and clear previous interrupts.
      */
-   // //NVIC_DisableIRQ(ComBlk_IRQn);
+    //NVIC_DisableIRQ(ComBlk_IRQn);
     COMBLK->INT_ENABLE = 0u;
-    ////NVIC_ClearPendingIRQ(ComBlk_IRQn);
+    //NVIC_ClearPendingIRQ(ComBlk_IRQn);
     
     /*--------------------------------------------------------------------------
      * Abort current command if any.
      */
     abort_current_cmd();
+    fprintf(stdout, "aborted current cmd\n");
     
     /*--------------------------------------------------------------------------
      * Initialialize COMBLK driver state variables:
@@ -168,7 +179,8 @@ void MSS_COMBLK_send_cmd_with_ptr
     /*--------------------------------------------------------------------------
      * Send command opcode as a single byte write to the Tx FIFO.
      */
-    send_cmd_opcode(g_comblk_cmd_opcode);
+    send_cmd_opcode(g_comblk_cmd_opcode); // Lars: Hangs here
+    fprintf(stdout, "sent cmd opcode\n");
     
     /*--------------------------------------------------------------------------
      * Send the command parameters pointer to the Tx FIFO as a single 4 bytes
@@ -192,7 +204,7 @@ void MSS_COMBLK_send_cmd_with_ptr
      * Enable interrupt.
      */
     COMBLK->INT_ENABLE |= RCVOKAY_MASK;
-    ////NVIC_EnableIRQ(ComBlk_IRQn);
+    //NVIC_EnableIRQ(ComBlk_IRQn);
 }
 
 /*==============================================================================
@@ -216,9 +228,9 @@ void MSS_COMBLK_send_cmd
     /*
      * Disable and clear previous interrupts.
      */
-    ////NVIC_DisableIRQ(ComBlk_IRQn);
+    //NVIC_DisableIRQ(ComBlk_IRQn);
     COMBLK->INT_ENABLE = 0u;
-    ////NVIC_ClearPendingIRQ(ComBlk_IRQn);
+    //NVIC_ClearPendingIRQ(ComBlk_IRQn);
     
     /*
      * Abort current command if any.
@@ -637,7 +649,7 @@ static void abort_current_cmd(void)
          */
         COMBLK->CONTROL |= CR_FLUSHOUT_MASK;
         do {
-            flush_in_progress = COMBLK->CONTROL & CR_FLUSHOUT_MASK;
+            flush_in_progress = COMBLK->CONTROL & CR_FLUSHOUT_MASK;         
         } while(flush_in_progress);
     }
 }
@@ -658,6 +670,7 @@ static void send_cmd_opcode
     /* Wait for space to become available in Tx FIFO. */
     do {
         tx_okay = COMBLK->STATUS & TXTOKAY_MASK;
+       // fprintf(stdout, "looooooooooop\n");
     } while(0u == tx_okay);
     
     /* Send command opcode. */
@@ -701,4 +714,47 @@ static void process_sys_ctrl_command(uint8_t cmd_opcode)
         g_async_event_handler(cmd_opcode);
     }
 }
+
+
+/* Functions from core_cm3.h */
+
+/** \brief  Enable External Interrupt
+
+    The function enables a device-specific interrupt in the NVIC interrupt controller.
+
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_EnableIRQ(uint32_t IRQn)
+{
+  NVIC->ISER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); /* enable interrupt */
+}
+
+
+
+/** \brief  Disable External Interrupt
+
+    The function disables a device-specific interrupt in the NVIC interrupt controller.
+
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_DisableIRQ(uint32_t IRQn)
+{
+  NVIC->ICER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); /* disable interrupt */
+}
+
+
+
+
+/** \brief  Clear Pending Interrupt
+
+    The function clears the pending bit of an external interrupt.
+
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_ClearPendingIRQ(uint32_t IRQn)
+{
+  NVIC->ICPR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); /* Clear pending interrupt */
+}
+
+
 
