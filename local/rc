@@ -3,8 +3,8 @@ mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t devpts none /dev/pts
 mkdir /mnt
-mount -o nolock,rsize=1024 192.168.1.10:/export/dcs_sw /mnt
 ifconfig lo 127.0.0.1
 ifconfig eth0 192.168.1.11 netmask 255.255.255.0
-
+mount -o nolock,rsize=1024 192.168.1.10:/export/dcs_sw /mnt
+insmod /mnt/rculinux/drivers/sample2.ko 177 0
 

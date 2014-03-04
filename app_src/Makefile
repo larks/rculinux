@@ -22,9 +22,34 @@ jtagtest    : jtagtest.c
 clocktest	: clocktest.c
 		  $(CC) clocktest.c -o clocktest $(CFLAGS)
 
+# tests
+#regmap.o	:	regmap.h
+#		   $(CC) -c regmap.h $(CFLAGS)
+comblk.o	: comblk.c comblk.h regmap.h
+		  $(CC) -c comblk.c $(CFLAGS)
+sys_services.o : sys_services.c sys_services.h comblk.h regmap.h
+		  $(CC) -c sys_services.c $(CFLAGS)
+read.o		: read.c sys_services.h comblk.h
+		   $(CC) -c read.c $(CFLAGS)
+rd		: read.o comblk.o sys_services.o
+		  $(CC) $(LDFLAGS) -o rd read.o comblk.o sys_services.o $(CFLAGS)
+
+# system controller stuff
+mss_sys_services.o : sc_drivers/mss_sys_services/mss_sys_services.c sc_drivers/mss_sys_services/mss_sys_services.h sc_drivers/mss_sys_services/mss_comblk.h sc_drivers/CMSIS/mss_assert.h
+		  $(CC) -c sc_drivers/mss_sys_services/mss_sys_services.c $(CFLAGS)
+		  
+mss_comblk.o : sc_drivers/mss_sys_services/mss_comblk.c sc_drivers/mss_sys_services/mss_comblk.h sc_drivers/CMSIS/mss_assert.h
+		  $(CC) -c sc_drivers/mss_sys_services/mss_comblk.c $(CFLAGS)
+		  
+systemctrltest.o	: systemctrltest.c sc_drivers/mss_sys_services/mss_sys_services.h
+		  $(CC) -c systemctrltest.c $(CFLAGS)
+		  
+readVer	: systemctrltest.o mss_sys_services.o mss_comblk.o 
+		  $(CC) $(LDFLAGS) -o readVer systemctrltest.o mss_sys_services.o mss_comblk.o $(CFLAGS)
+
 # These are flags/tools used to build user-space programs
-CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall -lm
-LDFLAGS		:= -mcpu=cortex-m3 -mthumb -Wall
+CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall -lm -I/home/lars/work/linux-cortexm-1.11.0 -g
+LDFLAGS		:= -mcpu=cortex-m3 -mthumb -Wall -I/home/lars/work/linux-cortexm-1.11.0
 CC		= $(CROSS_COMPILE_APPS)gcc
 
 # Clean-up after user-space programs
