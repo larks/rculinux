@@ -179,8 +179,8 @@ void MSS_COMBLK_send_cmd_with_ptr
     /*--------------------------------------------------------------------------
      * Send command opcode as a single byte write to the Tx FIFO.
      */
-    send_cmd_opcode(g_comblk_cmd_opcode); // Lars: Hangs here
-    fprintf(stdout, "sent cmd opcode\n");
+    send_cmd_opcode(g_comblk_cmd_opcode); // Lars: Hangs here, not anymore?
+    fprintf(stdout, "MSS_COMBLK_send_cmd_with_ptr(): send_cmd_opcode() ok\n");
     
     /*--------------------------------------------------------------------------
      * Send the command parameters pointer to the Tx FIFO as a single 4 bytes
@@ -205,6 +205,8 @@ void MSS_COMBLK_send_cmd_with_ptr
      */
     COMBLK->INT_ENABLE |= RCVOKAY_MASK;
     //NVIC_EnableIRQ(ComBlk_IRQn);
+    fprintf(stdout, "MSS_COMBLK_send_cmd_with_ptr() done\n");
+    g_request_in_progress = 0u; // Lars: fixed?
 }
 
 /*==============================================================================

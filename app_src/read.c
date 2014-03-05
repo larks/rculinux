@@ -43,12 +43,12 @@ int main(void){
 	fprintf(stdout, "MSS_SYS_init done.\n");
     status = MSS_SYS_get_serial_number(serial_number);
     fprintf(stdout, "get serial done.\n");
-    if(MSS_SYS_SUCCESS == status)
-    {
+   // if(MSS_SYS_SUCCESS == status)
+    //{
         fprintf(stdout, "Device serial number: ");
         for(i=0; i<16; i++){fprintf(stdout, "%d", serial_number[i]);}
         fprintf(stdout, "\n");
-    }	
+    //}	
 
 
 /*

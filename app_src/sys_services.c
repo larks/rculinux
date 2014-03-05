@@ -733,15 +733,16 @@ static uint8_t execute_service
     uint16_t actual_response_length;
     
     signal_request_start();
-    fprintf(stdout, "signal_request_start() ok. \n");
+    fprintf(stdout, "execute_service(): signal_request_start() ok. \n");
     MSS_COMBLK_send_cmd_with_ptr(cmd_opcode,                    /* cmd_opcode */
                                  (uint32_t)cmd_params_ptr,      /* cmd_params_ptr */
                                  response,                      /* p_response */
                                  response_length,               /* response_size */
                                  request_completion_handler);   /* completion_handler */
-    fprintf(stdout, "send command ok. \n");
+    fprintf(stdout, "execute_service(): MSS_COMBLK_send_cmd_with_ptr() ok. \n"); // Lars: Now hangs here
+    /* g_request_in_progress = 0u; */
     actual_response_length = wait_for_request_completion();
-    fprintf(stdout, "waited for completion ok. \n");
+    fprintf(stdout, "execute_service(): wait_for_request_completion() ok. \n");
     if((response_length == actual_response_length) && (cmd_opcode == response[0]))
     {
         status = response[1];
@@ -750,7 +751,7 @@ static uint8_t execute_service
     {
         status = MSS_SYS_UNEXPECTED_ERROR;
     }
-    
+    fprintf(stdout, "execute_service() done.\n");
     return status;
 }
 
@@ -789,7 +790,7 @@ static uint16_t wait_for_request_completion(void)
 {
     while(g_request_in_progress)
     {
-        fprintf(stdout, "wait_for_rrequest_completion()\n");
+        ;//fprintf(stdout, "wait_for_rrequest_completion()\n");
     }
     
     return g_last_response_length;

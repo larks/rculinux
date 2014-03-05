@@ -118,8 +118,11 @@ nod /dev/radmonc 0600 0 0 c 253 0
 # Dropbear ssh server
 dir /etc/dropbear 0755 0 0
 file /etc/dropbear/dropbear_dss_host_key ${INSTALL_ROOT}/projects/${SAMPLE}/local/ssh_host_dss_key 644 0 0
-# file /etc/dropbear/dropbear_rsa_host_key ${INSTALL_ROOT}/projects/${SAMPLE}/local/ssh_host_rsa_key 644 0 0
+file /etc/dropbear/dropbear_rsa_host_key ${INSTALL_ROOT}/projects/${SAMPLE}/local/ssh_host_rsa_key 644 0 0
 file /usr/bin/dropbear ${INSTALL_ROOT}/A2F/root/usr/sbin/dropbear 755 0 0
 file /usr/bin/dbclient ${INSTALL_ROOT}/A2F/root/usr/bin/dbclient 755 0 0
+#file /usr/bin/dbclient ${INSTALL_ROOT}/A2F/root/usr/bin/dropbear 755 0 0
+#file /usr/bin/dropbearkey ${INSTALL_ROOT}/A2F/root/usr/bin/dropbearkey 755 0 0
+
 file /usr/bin/scp ${INSTALL_ROOT}/A2F/root/usr/bin/scp 755 0 0
 slink /usr/bin/ssh dbclient 777 0 0

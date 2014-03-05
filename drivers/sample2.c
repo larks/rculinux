@@ -70,16 +70,18 @@ static char sample_str[] = "This is the simplest loadable kernel module!!!! samp
 static char *sample_end;
 
 /*
- * address list for the commnication to s2m-mos
+ * address list for the communication to m2s-som
  */
+static u32* apbbus_in_physaddr_MSM  = ((u32 *) 0x30000000);
+static u32* apbbus_in_physaddr_TRM  = ((u32 *) 0x50000000);
+static int apbbus_in_size   = 0xFFFFFFF;
 
-static u32* apbbus_in_physaddr  = ((u32 *) 0x50000000);
-static int apbbus_in_size   = 0x400;
-
-static u32* apbbus_in_virtbase=NULL;
+static u32* apbbus_in_virtbase_TRM=NULL;
+static u32* apbbus_in_virtbase_MSM=NULL;
 
 module_param(apbbus_in_size, int, S_IRUSR | S_IWUSR);
-module_param(apbbus_in_physaddr, uint, S_IRUSR | S_IWUSR);
+module_param(apbbus_in_physaddr_MSM, uint, S_IRUSR | S_IWUSR);
+module_param(apbbus_in_physaddr_TRM, uint, S_IRUSR | S_IWUSR);
 
 
 /*
@@ -87,7 +89,7 @@ module_param(apbbus_in_physaddr, uint, S_IRUSR | S_IWUSR);
  */
 
 
-
+/* Not being used anywhere, commented to remove warning
 static int memtest(u32 begin, u32 size) {
   u32 i,rd;
   int ret=0;
@@ -107,6 +109,7 @@ static int memtest(u32 begin, u32 size) {
   }
   return ret;
 }
+*/
 
 static int dcs_read (u32 begin, u32 size, u32* buff)
 {
@@ -201,7 +204,7 @@ static int sample_release(struct inode *inode, struct file *file)
 static ssize_t sample_read(struct file *filp, char *buffer,
 			   size_t length, loff_t * offset)
 {
-  char * addr;
+/*  char * addr; */
   unsigned int len = 0;
   int ret = 0;
   u32 u32Count=0;
@@ -240,12 +243,18 @@ static ssize_t sample_read(struct file *filp, char *buffer,
   //  len = addr + length < sample_end ? length : sample_end - addr;
   
   /////////////////////////////////
-  //pu32Source = apbbus_in_virtbase + (0x40000 + u32Offset)/sizeof(u32);
-  pu32Source = apbbus_in_virtbase + (u32Offset)/sizeof(u32);
+  //pu32Source = apbbus_in_virtbase_TRM + (0x40000 + u32Offset)/sizeof(u32);
   
+  /* Check to see if we are addressing the TRM or MSM */
+  if(u32Offset < 0x80000){
+    pu32Source = apbbus_in_virtbase_TRM + (u32Offset)/sizeof(u32);
+  }
+  else{
+    pu32Source = apbbus_in_virtbase_MSM + (u32Offset)/sizeof(u32);
+  }
   u32Count = length;
   dcs_read((u32)pu32Source, u32Count, (u32*)buffer);
-  d_printk(0, "read data=0x%x (address = 0x%x)\n", *buffer, pu32Source);
+  d_printk(0, "read data=0x%x (address = %p)\n", *buffer, pu32Source);
 
 
   /////////////////////////////////
@@ -281,10 +290,16 @@ static ssize_t sample_write(struct file *filp, const char *buffer,
   u32Offset=lPos;
   u32Offset<<=4; // word alignment
 
-  //  pu32Target = apbbus_in_virtbase + (0x40000 + u32Offset)/sizeof(u32);
-  pu32Target = apbbus_in_virtbase + (u32Offset)/sizeof(u32);
+  //  pu32Target = apbbus_in_virtbase_TRM + (0x40000 + u32Offset)/sizeof(u32);
+  /* Check to see if we are addressing the TRM or MSM */
+  if(u32Offset < 0x80000){
+    pu32Target = apbbus_in_virtbase_TRM + (u32Offset)/sizeof(u32);
+  }
+  else{
+    pu32Target = apbbus_in_virtbase_MSM + (u32Offset)/sizeof(u32);
+  }
 
-  d_printk(0, "write data=0x%x (address = 0x%x, length=%d)\n", (u32*)buffer, pu32Target, u32Count);
+  d_printk(0, "write data=0x%x (address = %p, length=%d)\n", (u32*)buffer, pu32Target, (unsigned int)u32Count);
   dcs_write((u32)pu32Target, u32Count,  (u32*)buffer);
   iResult=(int)u32Count;
 
@@ -306,7 +321,7 @@ static loff_t sample_seek(struct file* filp, loff_t off, int ref)
   }
   if (lPosition>=0) filp->f_pos=lPosition;
 
-  d_printk(0, "filp->f_pos = %d\n", lPosition);
+  d_printk(0, "filp->f_pos = %d\n", (int)lPosition);
 
   return lPosition;
 }
@@ -328,20 +343,30 @@ static struct file_operations sample_fops = {
  */
 void cleanupRealBuffers(void)
 {
-  if (apbbus_in_virtbase) iounmap((void *)apbbus_in_virtbase);
+  if (apbbus_in_virtbase_TRM) iounmap((void *)apbbus_in_virtbase_TRM);
+  if (apbbus_in_virtbase_MSM) iounmap((void *)apbbus_in_virtbase_MSM);
 }
+/*
+ * init ioremap... Not necessary since we don't have MMU?
+ */
 int initRealBuffers(void)
 {
   int iResult=0;
-  int iNofErr=0;
-
-  apbbus_in_virtbase  = (u32*) ioremap_nocache((u32)apbbus_in_physaddr,apbbus_in_size);
-  d_printk(0, "Remapped MSGBUF_IN from 0x%p to 0x%p",apbbus_in_physaddr, apbbus_in_virtbase);
-  if(apbbus_in_virtbase==NULL && apbbus_in_size>0 ){
+/*  int iNofErr=0; */
+  /* Trigger and readout module */
+  apbbus_in_virtbase_TRM  = (u32*) ioremap_nocache((u32)apbbus_in_physaddr_TRM,apbbus_in_size);
+  d_printk(0, "Remapped TRM from 0x%p to 0x%p",apbbus_in_physaddr_TRM, apbbus_in_virtbase_TRM);
+  if(apbbus_in_virtbase_TRM==NULL && apbbus_in_size>0 ){
+    iResult=-EIO;
+  }
+  /* Monitoring and safety module */
+  apbbus_in_virtbase_MSM  = (u32*) ioremap_nocache((u32)apbbus_in_physaddr_MSM,apbbus_in_size);
+  d_printk(0, "Remapped MSM from 0x%p to 0x%p",apbbus_in_physaddr_MSM, apbbus_in_virtbase_MSM);
+  if(apbbus_in_virtbase_TRM==NULL && apbbus_in_size>0 ){
     iResult=-EIO;
   }
   /////// test the buffer
-  //iNofErr=memtest((u32) (apbbus_in_virtbase + 0x40040/sizeof(u32)) , 2*4);
+  //iNofErr=memtest((u32) (apbbus_in_virtbase_TRM + 0x40040/sizeof(u32)) , 2*4);
   //d_printk(0, "Memtest # of errors = %d\n", iNofErr);
 
   return iResult;
