@@ -69,23 +69,25 @@ int main(int argc, char **argv)
 	int doread=0;
 	int dowrite=0;
 
-	/* TODO: Change all this to better check as well as implementing more features */
+	/* TODO: Change all this to better check as well as implementing more features.
+	 * Maybe use getopt_long(), or getopt()?
+	 */
 	
 	// read  
 	if( (strcmp(cmd,"rd")==0 || strcmp(cmd,"r")==0 || strcmp(cmd,"read")==0) ){
-		fprintf(stdout, "%s\n", cmd); /**/
+//		fprintf(stdout, "%s\n", cmd); /**/
 		doread=1;
 		dowrite=0;
 	}
 	// write
 	if( (strcmp(cmd,"wr")==0 || strcmp(cmd,"w")==0 || strcmp(cmd,"write")==0) ){
-		fprintf(stdout, "%s\n", cmd); /**/
+//		fprintf(stdout, "%s\n", cmd); /**/
 		dowrite=1;
 		doread=0;
 		data = argv[3];
 	}
 	if( strcmp(cmd, "c") == 0){
-	fprintf(stdout, "%s\n", cmd); /**/
+/*	fprintf(stdout, "%s\n", cmd);*/ /**/
 		dowrite=1;
 		doread=0;
 		data="0x0";

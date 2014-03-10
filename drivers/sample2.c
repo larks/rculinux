@@ -254,7 +254,7 @@ static ssize_t sample_read(struct file *filp, char *buffer,
   }
   u32Count = length;
   dcs_read((u32)pu32Source, u32Count, (u32*)buffer);
-  d_printk(0, "read data=0x%x (address = %p)\n", *buffer, pu32Source);
+/*  d_printk(0, "read data=0x%x (address = %p)\n", *buffer, pu32Source); */
 
 
   /////////////////////////////////
@@ -264,7 +264,7 @@ static ssize_t sample_read(struct file *filp, char *buffer,
   ret = len;
 
  Done:
-  d_printk(0, "length=%d,len=%d,ret=%d\n", length, len, ret);
+  /* d_printk(0, "length=%d,len=%d,ret=%d\n", length, len, ret); */
   return ret;
 }
 
@@ -299,11 +299,11 @@ static ssize_t sample_write(struct file *filp, const char *buffer,
     pu32Target = apbbus_in_virtbase_MSM + (u32Offset)/sizeof(u32);
   }
 
-  d_printk(0, "write data=0x%x (address = %p, length=%d)\n", (u32*)buffer, pu32Target, (unsigned int)u32Count);
+/*  d_printk(0, "write data=0x%x (address = %p, length=%d)\n", (u32*)buffer, pu32Target, (unsigned int)u32Count); */
   dcs_write((u32)pu32Target, u32Count,  (u32*)buffer);
   iResult=(int)u32Count;
 
-  d_printk(3, "length=%d\n", length);
+/*  d_printk(3, "length=%d\n", length); */
   return iResult;
 }
 
@@ -321,7 +321,7 @@ static loff_t sample_seek(struct file* filp, loff_t off, int ref)
   }
   if (lPosition>=0) filp->f_pos=lPosition;
 
-  d_printk(0, "filp->f_pos = %d\n", (int)lPosition);
+  /* d_printk(0, "filp->f_pos = %d\n", (int)lPosition); */
 
   return lPosition;
 }
