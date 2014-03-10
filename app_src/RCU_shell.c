@@ -11,9 +11,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "cmdInterpreter.h"
+#include <stdint.h> /* uint32_t etc.*/
+#include <stdlib.h> /* exit() */
 
-
-//const char * noArgPrompt[] = "enter operation (h/r/w):";
+uint32_t registerAccess(uint32_t, uint32_t, char *);
 
 unsigned int parseBinary(char *str) {
   unsigned int val = 0;
@@ -47,6 +48,7 @@ unsigned int parseNumber(char *str) {
   return addr;
 }
 
+const char * dev_name = "/dev/sample2";
 
 int main(int argc, char **argv)
 {
@@ -56,94 +58,96 @@ int main(int argc, char **argv)
 		printHelp();
 		return -1;
 	}
-
-	char * app_name = argv[0];
-	char * dev_name = "/dev/sample2";
-	int ret = -1;
-	int fd = -1;
-	int c, x;
-	char * cmd =  argv[1];
-	char * addr = argv[2];
-	char * data = NULL;
 	
-	int doread=0;
-	int dowrite=0;
+	uint32_t addr;
+	uint32_t data = 0x0;
 
-	/* TODO: Change all this to better check as well as implementing more features.
-	 * Maybe use getopt_long(), or getopt()?
-	 */
+	/* Command parsing */
+	int n;
+	for (n = 1; n < argc; n++ )
+	{
+		switch( (int)argv[n][0] )
+		{
+		case 'r':
+			/* Read */
+			addr = parseNumber(argv[n+1]);
+			data = registerAccess(addr, 0x0, "r");
+			fprintf(stdout, "0x%x\n", data);
+			break;
+		case 'w':
+			/* Write*/
+			addr = parseNumber(argv[n+1]);
+			if (argc < 4){printHelp(); break;}
+			else
+			data = parseNumber(argv[n+2]);
+			data = registerAccess(addr, data, "w");
+			fprintf(stdout, "0x%x\n", data);
+			break;
+		case 'c':
+			/* Write zero to register address */
+			addr = parseNumber(argv[n+1]);
+			data = 0x0;
+			data = registerAccess(addr, data, "w");
+			fprintf(stdout, "0x%x\n", data);
+			break;
+		default:
+			//printHelp();
+			return 0;
+			break;
+		}
 	
-	// read  
-	if( (strcmp(cmd,"rd")==0 || strcmp(cmd,"r")==0 || strcmp(cmd,"read")==0) ){
-//		fprintf(stdout, "%s\n", cmd); /**/
-		doread=1;
-		dowrite=0;
-	}
-	// write
-	if( (strcmp(cmd,"wr")==0 || strcmp(cmd,"w")==0 || strcmp(cmd,"write")==0) ){
-//		fprintf(stdout, "%s\n", cmd); /**/
-		dowrite=1;
-		doread=0;
-		data = argv[3];
-	}
-	if( strcmp(cmd, "c") == 0){
-/*	fprintf(stdout, "%s\n", cmd);*/ /**/
-		dowrite=1;
-		doread=0;
-		data="0x0";
-	}
-	// batch
-	if( (strcmp(cmd,"b") == 0 || strcmp(cmd,"batch")) ){
-		// do some file buffering
-	}
-	
-	unsigned int intval ;
-	unsigned int offset ;
-
-	offset = parseNumber(addr);
-//	offset <<= 4;
-//	printf("this is the address: %u\n", offset); 
-	intval = parseNumber(data);
-
-	/*
-	 * Open the sample device RD | WR
-	 */
-	if ((fd = open(dev_name, O_RDWR)) < 0) {
-		fprintf(stderr, "%s: unable to open %s: %s\n", 
-			app_name, dev_name, strerror(errno));
-		goto Done;
-	}
-  
-	/*
-	 * Read the sample device byte-by-byte
-	 */
-	if ((x = lseek(fd, offset, SEEK_SET)) < 0) {
-		fprintf(stderr, "%s: unable to seek %s: %s\n", 
-			app_name, dev_name, strerror(errno));
-		goto Done;
 	}
 
-	if(dowrite==1){
-		if ((x = write(fd, (char*)intval, sizeof(intval))) < 0) {
-			fprintf(stderr, "%s: unable to write %s: %s\n", 
-				app_name, dev_name, strerror(errno));
-		goto Done;
-		}	
-	}
+ /* This is the end */
+	return 0;
+}
 
-	if(doread==1){
-		if ((x = read(fd, &c, 4)) < 0) {
-			fprintf(stderr, "%s: unable to read %s: %s\n", 
-				app_name, dev_name, strerror(errno));
-		goto Done;
-		}	
-		fprintf(stdout, "0x%x\n", c);
-	}
-
-  
-	Done:
-	if (fd >= 0) {
-		close(fd);
-	}
-	return ret;
+/*
+ * register access function
+*/
+uint32_t registerAccess(uint32_t address, uint32_t data, char * rORw)
+{
+		uint32_t c, x;
+		int fd = -1;
+		if (strcmp(rORw, "r") == 0) {
+			if ((fd = open(dev_name, O_RDWR)) < 0) {
+				fprintf(stderr, "unable to open %s: %s\n", dev_name, strerror(errno));
+			    exit(-1);
+				}
+			/* First we seek */
+			if ((x = lseek(fd, address, SEEK_SET)) < 0) {
+				fprintf(stderr, "unable to seek %s: %s\n", dev_name, strerror(errno));
+				exit(-1);
+			}
+			/* Second we read the requested memory */
+			if ((x = read(fd, &c, 4)) < 0) {
+				fprintf(stderr, "unable to read %s: %s\n", dev_name, strerror(errno));
+	        	exit(-1);
+			}
+			if (fd >= 0) {
+				close(fd);
+			}	
+			return c;
+/*			fprintf(stdout, "0x%x\n", c); */
+		}
+		else if (strcmp(rORw, "w") == 0) {
+			if ((fd = open(dev_name, O_RDWR)) < 0) {
+				fprintf(stderr, "unable to open %s: %s\n", dev_name, strerror(errno));
+			    exit(-1);
+				}
+			/* First we seek */
+			if ((x = lseek(fd, address, SEEK_SET)) < 0) {
+			fprintf(stderr, "unable to seek %s: %s\n", dev_name, strerror(errno));
+			}
+			/* Second we read the requested memory */
+			if ((x = write(fd, (char*) data, sizeof(data))) < 0) {
+				fprintf(stderr, "unable to write %s: %s\n", dev_name, strerror(errno));
+			}
+			/*fprintf(stdout, "0x%x\n", c);*/
+			return data;
+		}
+		else {
+			fprintf(stderr, "registerAccess(): Something went wrong trying to understand what you wanted to do with the memory\n");
+			return -1;
+		}
 }
