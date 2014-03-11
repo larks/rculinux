@@ -63,19 +63,20 @@ int main(int argc, char **argv)
 	uint32_t data = 0x0;
 
 	/* Command parsing */
-	int n;
+	int m, n,      /* Loop counters */
+	    ch;        /* character buffer */
 	for (n = 1; n < argc; n++ )
 	{
 		switch( (int)argv[n][0] )
 		{
+		/* Read data in address */
 		case 'r':
-			/* Read */
 			addr = parseNumber(argv[n+1]);
 			data = registerAccess(addr, 0x0, "r");
 			fprintf(stdout, "0x%x\n", data);
 			break;
+		/* Write data to address */
 		case 'w':
-			/* Write*/
 			addr = parseNumber(argv[n+1]);
 			if (argc < 4){printHelp(); break;}
 			else
@@ -83,6 +84,7 @@ int main(int argc, char **argv)
 			data = registerAccess(addr, data, "w");
 			fprintf(stdout, "0x%x\n", data);
 			break;
+		/* Write 0x0 to address */
 		case 'c':
 			/* Write zero to register address */
 			addr = parseNumber(argv[n+1]);
@@ -90,9 +92,18 @@ int main(int argc, char **argv)
 			data = registerAccess(addr, data, "w");
 			fprintf(stdout, "0x%x\n", data);
 			break;
+		/* Here comes the additional options */
+		case '-':
+			switch(argv[n][1])
+			{
+			/* Append to file */
+			case 'a':
+				/* Need character buffer? */
+				break;
+			}
 		default:
-			//printHelp();
-			return 0;
+			fprintf(stderr, "Error, oops, we tripped\n");
+			return 1;
 			break;
 		}
 	
@@ -109,6 +120,7 @@ uint32_t registerAccess(uint32_t address, uint32_t data, char * rORw)
 {
 		uint32_t c, x;
 		int fd = -1;
+		/* Read procedure */
 		if (strcmp(rORw, "r") == 0) {
 			if ((fd = open(dev_name, O_RDWR)) < 0) {
 				fprintf(stderr, "unable to open %s: %s\n", dev_name, strerror(errno));
@@ -130,6 +142,7 @@ uint32_t registerAccess(uint32_t address, uint32_t data, char * rORw)
 			return c;
 /*			fprintf(stdout, "0x%x\n", c); */
 		}
+		/* Write procedure */
 		else if (strcmp(rORw, "w") == 0) {
 			if ((fd = open(dev_name, O_RDWR)) < 0) {
 				fprintf(stderr, "unable to open %s: %s\n", dev_name, strerror(errno));
@@ -146,6 +159,7 @@ uint32_t registerAccess(uint32_t address, uint32_t data, char * rORw)
 			/*fprintf(stdout, "0x%x\n", c);*/
 			return data;
 		}
+		/* That's the two options we have! */
 		else {
 			fprintf(stderr, "registerAccess(): Something went wrong trying to understand what you wanted to do with the memory\n");
 			return -1;
