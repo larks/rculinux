@@ -65,18 +65,63 @@ int main(int argc, char **argv)
 	/* Command parsing */
 	int m, n,      /* Loop counters */
 	    ch;        /* character buffer */
-	for (n = 1; n < argc; n++ )
+	    
+	/* File pointer for choosing where to put results */
+	FILE *fp = NULL;
+	
+	/* Go through arguments from last to first 
+	 * This is done so that additional options
+	 * are scanned before read/write options.
+	*/
+	
+	for (n = argc-1; n > 0; n-- )
 	{
+	fprintf(stdout, "argc=%d, argv(n=%d) = %s\n", argc, n, argv[n] );
+/*
+		if(argv[n][0] == '-' )
+		{
+			switch( (int)argv[n][1] )
+			{
+*/
+			/* Write output to file */
+/*
+			const char * strMode = "w";
+			case 'o':
+			case 'a':
+				if (argc > n){
+					if ((int)argv[n][1] == 'a' ) strMode = "a";
+						fp = fopen(argv[n+1], strMode);
+						if(fp == NULL){
+						fprintf(stderr, "Could not open file %s for writing.\n", argv[n+1]);
+						}
+				} 
+				else fprintf(stderr, "Missing argument to option %s \n", argv[n]);
+				break;
+*/
+			/* Format string */
+/*	
+			case 'f':
+				if(argc > n){
+					
+				}
+				else fprintf(stderr, "Missing argument to option %s \n", argv[n]);
+				break;
+			}
+		}
+		else
+*/
 		switch( (int)argv[n][0] )
 		{
 		/* Read data in address */
 		case 'r':
+			if(argv[n][1]) break;
 			addr = parseNumber(argv[n+1]);
 			data = registerAccess(addr, 0x0, "r");
 			fprintf(stdout, "0x%x\n", data);
 			break;
 		/* Write data to address */
 		case 'w':
+			if(argv[n][1]) break; /* */
 			addr = parseNumber(argv[n+1]);
 			if (argc < 4){printHelp(); break;}
 			else
@@ -86,24 +131,48 @@ int main(int argc, char **argv)
 			break;
 		/* Write 0x0 to address */
 		case 'c':
+			if(argv[n][1]) break;
 			/* Write zero to register address */
 			addr = parseNumber(argv[n+1]);
 			data = 0x0;
 			data = registerAccess(addr, data, "w");
-			fprintf(stdout, "0x%x\n", data);
+			fprintf(stdout, "0x%x\n", data); /* The printing should happen outside the loop, this means we fill up a buffer*/
 			break;
+			
 		/* Here comes the additional options */
 		case '-':
-			switch(argv[n][1])
+			switch( (int)argv[n][1] )
 			{
-			/* Append to file */
+			/* Write output to file */
+			const char * strMode = "w";
+			case 'o':
 			case 'a':
-				/* Need character buffer? */
+				if (argc > n){
+					if ((int)argv[n][1] == 'a' ) strMode = "a";
+					fp = fopen(argv[n+1], strMode);
+					if(fp == NULL){
+						fprintf(stderr, "Could not open file %s for writing.\n", argv[n+1]);
+						exit(1);
+					}
+				}
+				else fprintf(stderr, "Missing argument to option %s \n", argv[n]);
+				break;
+			/* Format string */
+			case 'f':
+				if(argc > n){
+					
+				}
+				else fprintf(stderr, "Missing argument to option %s \n", argv[n]);
 				break;
 			}
+			break;
+		case '/': /* yeah, not really good - a lot of errors can occur*/
+		case '0':
+			break;
 		default:
 			fprintf(stderr, "Error, oops, we tripped\n");
-			return 1;
+			//exit(1);
+			//return 1;
 			break;
 		}
 	
@@ -111,6 +180,7 @@ int main(int argc, char **argv)
 
  /* This is the end */
 	return 0;
+	if( fp != stdout ) fclose(fp);
 }
 
 /*
