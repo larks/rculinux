@@ -114,10 +114,20 @@ int main(int argc, char **argv)
 		{
 		/* Read data in address */
 		case 'r':
-			if(argv[n][1]) break;
+			if(argv[n][1]) break; /* Temporary solution */
+			char temp[2];
+			temp[0] = argv[n+2][0];
+			temp[1] = argv[n+2][1];
+			fprintf(stdout, "%s\n", argv[n+1]);
+				if(strcmp(temp, "0x") == 0){
+					fprintf(stderr, "Read does not take a hex value...\n");
+					exit(1);	
+				}
 			addr = parseNumber(argv[n+1]);
 			data = registerAccess(addr, 0x0, "r");
-			fprintf(stdout, "0x%x\n", data);
+			/* Print results */
+			if(!fp) fp=stdout;
+			fprintf(fp, "%#x\n", data);
 			break;
 		/* Write data to address */
 		case 'w':
@@ -127,7 +137,9 @@ int main(int argc, char **argv)
 			else
 			data = parseNumber(argv[n+2]);
 			data = registerAccess(addr, data, "w");
-			fprintf(stdout, "0x%x\n", data);
+			/* Print results */
+			if(!fp) fp=stdout;
+			fprintf(fp, "%#x\n", data);
 			break;
 		/* Write 0x0 to address */
 		case 'c':
@@ -136,7 +148,9 @@ int main(int argc, char **argv)
 			addr = parseNumber(argv[n+1]);
 			data = 0x0;
 			data = registerAccess(addr, data, "w");
-			fprintf(stdout, "0x%x\n", data); /* The printing should happen outside the loop, this means we fill up a buffer*/
+			/* Print results */
+			if(!fp) fp=stdout;
+			fprintf(fp, "%#x\n", data); /* The printing should happen outside the loop, this means we fill up a buffer*/
 			break;
 			
 		/* Here comes the additional options */
@@ -144,10 +158,10 @@ int main(int argc, char **argv)
 			switch( (int)argv[n][1] )
 			{
 			/* Write output to file */
-			const char * strMode = "w";
 			case 'o':
 			case 'a':
 				if (argc > n){
+					const char * strMode = "w";
 					if ((int)argv[n][1] == 'a' ) strMode = "a";
 					fp = fopen(argv[n+1], strMode);
 					if(fp == NULL){
@@ -178,9 +192,9 @@ int main(int argc, char **argv)
 	
 	}
 
- /* This is the end */
+	/* This is the end */
+ 	if( fp != stdout ) fclose(fp);
 	return 0;
-	if( fp != stdout ) fclose(fp);
 }
 
 /*
