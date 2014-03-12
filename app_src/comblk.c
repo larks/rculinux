@@ -101,8 +101,10 @@ void MSS_COMBLK_init(comblk_async_event_handler_t async_event_handler)
      * Disable and clear previous interrupts.
      */
     //NVIC_DisableIRQ(ComBlk_IRQn);
+    NVIC->ICER[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F));
     COMBLK->INT_ENABLE = 0u;
     //NVIC_ClearPendingIRQ(ComBlk_IRQn);
+    NVIC->ICPR[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F)); /* Clear pending interrupt */
     
     g_async_event_handler = async_event_handler;
     
@@ -132,6 +134,7 @@ void MSS_COMBLK_init(comblk_async_event_handler_t async_event_handler)
     COMBLK->INT_ENABLE &= ~TXTOKAY_MASK;
     COMBLK->INT_ENABLE |= RCVOKAY_MASK;
     //NVIC_EnableIRQ(ComBlk_IRQn);
+    NVIC->ISER[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F)); /* enable interrupt */
 }
 
 /*==============================================================================
@@ -152,8 +155,11 @@ void MSS_COMBLK_send_cmd_with_ptr
      * Disable and clear previous interrupts.
      */
     //NVIC_DisableIRQ(ComBlk_IRQn);
+    NVIC->ICER[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F));
+    
     COMBLK->INT_ENABLE = 0u;
     //NVIC_ClearPendingIRQ(ComBlk_IRQn);
+    NVIC->ICPR[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F)); /* Clear pending interrupt */
     
     /*--------------------------------------------------------------------------
      * Abort current command if any.
@@ -205,8 +211,10 @@ void MSS_COMBLK_send_cmd_with_ptr
      */
     COMBLK->INT_ENABLE |= RCVOKAY_MASK;
     //NVIC_EnableIRQ(ComBlk_IRQn);
+    NVIC->ISER[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F)); /* enable interrupt */
+    //NVIC->ISER[0] = (1 << ComBlk_IRQn);
     fprintf(stdout, "MSS_COMBLK_send_cmd_with_ptr() done\n");
-    g_request_in_progress = 0u; // Lars: fixed?
+   // g_request_in_progress = 0u; // Lars: fixed?
 }
 
 /*==============================================================================
@@ -231,8 +239,10 @@ void MSS_COMBLK_send_cmd
      * Disable and clear previous interrupts.
      */
     //NVIC_DisableIRQ(ComBlk_IRQn);
+    NVIC->ICER[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F));
     COMBLK->INT_ENABLE = 0u;
     //NVIC_ClearPendingIRQ(ComBlk_IRQn);
+    NVIC->ICPR[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F)); /* Clear pending interrupt */
     
     /*
      * Abort current command if any.
@@ -286,6 +296,7 @@ void MSS_COMBLK_send_cmd
      * Enable interrupt.
      */
     //NVIC_EnableIRQ(ComBlk_IRQn);
+    NVIC->ISER[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F)); /* enable interrupt */
 }
 
 /*==============================================================================
@@ -310,8 +321,10 @@ void MSS_COMBLK_send_paged_cmd
      * Disable and clear previous interrupts.
      */
     //NVIC_DisableIRQ(ComBlk_IRQn);
+    NVIC->ICER[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F));
     COMBLK->INT_ENABLE = 0u;
     //NVIC_ClearPendingIRQ(ComBlk_IRQn);
+    NVIC->ICPR[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F)); /* Clear pending interrupt */
     
     /*
      * Abort current command if any.
@@ -359,6 +372,7 @@ void MSS_COMBLK_send_paged_cmd
      */
     COMBLK->INT_ENABLE |= irq_enable;
     //NVIC_EnableIRQ(ComBlk_IRQn);
+    NVIC->ISER[((uint32_t)(ComBlk_IRQn) >> 5)] = (1 << ((uint32_t)(ComBlk_IRQn) & 0x1F)); /* enable interrupt */
 }
 
 /*==============================================================================

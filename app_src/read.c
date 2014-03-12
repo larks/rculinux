@@ -9,8 +9,12 @@
 //#include "regmap.h" /* register definitions */
 #include "sys_services.h"
 #include "comblk.h"
+
+
 static int register_init(void);
 static int register_exit(void);
+
+
 
 //	COMBLK_TypeDef * COMBLK;
 //	SYSREG_TypeDef * SYSREG;
@@ -18,6 +22,9 @@ static int register_exit(void);
 int main(void){
 	/* variables */
 	uint8_t serial_number[16];
+    uint8_t user_code[4];
+    uint8_t design_version[2];
+    uint8_t device_certificate[512];
 	uint8_t status;
 	int i;
 
@@ -41,13 +48,18 @@ int main(void){
 	fprintf(stdout, "mmap init done.\n");
 	MSS_SYS_init(MSS_SYS_NO_EVENT_HANDLER);
 	fprintf(stdout, "MSS_SYS_init done.\n");
+	/* Read device serial number (DSN) */
     status = MSS_SYS_get_serial_number(serial_number);
-    fprintf(stdout, "get serial done.\n");
+    fprintf(stdout, "Get serial done. Status: %d\n", status);
+    /* Read design version */
+    status = MSS_SYS_get_design_version(design_version);
+    fprintf(stdout, "Get design version done. Status: %d\n", status);
+    
    // if(MSS_SYS_SUCCESS == status)
     //{
-        fprintf(stdout, "Device serial number: ");
-        for(i=0; i<16; i++){fprintf(stdout, "%d", serial_number[i]);}
-        fprintf(stdout, "\n");
+        fprintf(stdout, "Device serial number: %s\n", (char *)serial_number);
+        //for(i=0; i<16; i++){fprintf(stdout, "%d", serial_number[i]);}
+        fprintf(stdout, "Design version: %s\n", (char*) design_version);
     //}	
 
 
@@ -73,11 +85,14 @@ static void isp_operation_menu(void)
 static int register_init(void)
 {
 	/* Open /dev/mem */
-	int mem_fd = open("/dev/mem", O_RDWR);
+	int mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
+	int kmem_fd = open("/dev/kmem", O_RDWR | O_SYNC);
 	if (mem_fd<0) {
   		fprintf(stderr, "open(\"/dev/mem\") failed\n");
 	    exit(-1);
   	}
+  	
+  	//nvic_init();
   	
   	/* Map COMBLK registers to mem */
   	//struct COMBLK_TypeDef * COMBLK;
@@ -104,14 +119,30 @@ static int register_init(void)
 	fprintf(stdout, "reset comblk: 0x%x\n", SYSREG->SOFT_RST_CR);
 	
 	/* Map NVIC (not working, protected from user space i guess */
-	/*
-	NVIC = mmap(NULL, 4308, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, (off_t)NVIC_BASE);
+	fprintf(stdout, "%#x\n", NVIC_BASE);
+	NVIC = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_FIXED, kmem_fd, (off_t)NVIC_BASE);
 	if(NVIC==MAP_FAILED) {
 		fprintf(stderr, "NVIC map failed\n");
     	exit(-1);
 	}
 	else fprintf(stdout, "Mapped NVIC\n");
+	
+	
+	/* New proposal: 
+	
+	nvic = open(/dev/NVIC);
+	
+	write("28Clear");
+	write("28Enable");
+	etc... ?
+	
+	close(nvic);
+	
+	
+	
 	*/
+	
+	
 	
   	return 0;
 }
@@ -126,12 +157,12 @@ static int register_exit(void)
 		fprintf(stderr, "munmap(SYSREG) failed\n");
 		exit(-1);
 	}
-	/*
-	else if( munmap(NVIC, 4308) < 0 ){
+	
+	else if( munmap(NVIC, 4096) < 0 ){
 		fprintf(stderr, "munmap(SYSREG) failed\n");
 		exit(-1);
 	}
-	*/
+	
 	else fprintf(stdout, "munmap() success\n");
 	return 0;
 }

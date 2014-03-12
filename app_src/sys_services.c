@@ -741,7 +741,7 @@ static uint8_t execute_service
                                  request_completion_handler);   /* completion_handler */
     fprintf(stdout, "execute_service(): MSS_COMBLK_send_cmd_with_ptr() ok. \n"); // Lars: Now hangs here
     /* g_request_in_progress = 0u; */
-    actual_response_length = wait_for_request_completion();
+    actual_response_length = wait_for_request_completion(); /* This function seems to be the problem*/
     fprintf(stdout, "execute_service(): wait_for_request_completion() ok. \n");
     if((response_length == actual_response_length) && (cmd_opcode == response[0]))
     {
@@ -788,10 +788,10 @@ static void signal_request_start(void)
  */
 static uint16_t wait_for_request_completion(void)
 {
-    while(g_request_in_progress)
-    {
-        ;//fprintf(stdout, "wait_for_rrequest_completion()\n");
-    }
+//    while(g_request_in_progress)
+//    {
+//        ;//fprintf(stdout, "wait_for_rrequest_completion()\n");
+//    }
     
     return g_last_response_length;
 }
