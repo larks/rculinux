@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	
 	for (n = argc-1; n > 0; n-- )
 	{
-	fprintf(stdout, "argc=%d, argv(n=%d) = %s\n", argc, n, argv[n] );
+	//fprintf(stdout, "argc=%d, argv(n=%d) = %s\n", argc, n, argv[n] );
 /*
 		if(argv[n][0] == '-' )
 		{
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 			char temp[2];
 			temp[0] = argv[n+2][0];
 			temp[1] = argv[n+2][1];
-			fprintf(stdout, "%s\n", argv[n+1]);
+			//fprintf(stdout, "%s\n", argv[n+1]);
 				if(strcmp(temp, "0x") == 0){
 					fprintf(stderr, "Read does not take a hex value...\n");
 					exit(1);	
@@ -243,6 +243,9 @@ uint32_t registerAccess(uint32_t address, uint32_t data, char * rORw)
 				fprintf(stderr, "unable to write %s: %s\n", dev_name, strerror(errno));
 			}
 			/*fprintf(stdout, "0x%x\n", c);*/
+			if (fd >= 0) {
+				close(fd);
+			}	
 			return data;
 		}
 		/* That's the two options we have! */
