@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 			data = registerAccess(addr, 0x0, "r");
 			/* Print results */
 			if(!fp) fp=stdout;
-			fprintf(fp, "%#x\n", data);
+			fprintf(fp, "%#x: %#x\n", addr, data);
 			break;
 		/* Write data to address */
 		case 'w':
@@ -137,9 +137,10 @@ int main(int argc, char **argv)
 			else
 			data = parseNumber(argv[n+2]);
 			data = registerAccess(addr, data, "w");
+			data = registerAccess(addr, 0x0, "r");
 			/* Print results */
 			if(!fp) fp=stdout;
-			fprintf(fp, "%#x\n", data);
+			fprintf(fp, "%#x: %#x\n", addr, data);
 			break;
 		/* Write 0x0 to address */
 		case 'c':
@@ -148,9 +149,10 @@ int main(int argc, char **argv)
 			addr = parseNumber(argv[n+1]);
 			data = 0x0;
 			data = registerAccess(addr, data, "w");
+			data = registerAccess(addr, 0x0, "r"); /*read back value*/
 			/* Print results */
 			if(!fp) fp=stdout;
-			fprintf(fp, "%#x\n", data); /* The printing should happen outside the loop, this means we fill up a buffer*/
+			fprintf(fp, "%#x: %#x\n", addr, data); /* The printing should happen outside the loop, this means we fill up a buffer*/
 			break;
 			
 		/* Here comes the additional options */
