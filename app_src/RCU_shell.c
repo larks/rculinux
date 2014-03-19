@@ -124,10 +124,20 @@ int main(int argc, char **argv)
 					exit(1);	
 				}
 			addr = parseNumber(argv[n+1]);
-			data = registerAccess(addr, 0x0, "r");
-			/* Print results */
-			if(!fp) fp=stdout;
-			fprintf(fp, "%#x: %#x\n", addr, data);
+			if(parseNumber(argv[n+2])){
+				uint32_t iCnt;
+				for(iCnt = addr; iCnt < (addr+parseNumber(argv[n+2])); iCnt++ ){
+					data = registerAccess(iCnt, 0x0, "r");
+					if(!fp) fp=stdout;
+					fprintf(fp, "%#x: %#x\n", iCnt, data);
+				}
+			}
+			else{
+				data = registerAccess(addr, 0x0, "r");
+				/* Print results */
+				if(!fp) fp=stdout;
+				fprintf(fp, "%#x: %#x\n", addr, data);
+			}
 			break;
 		/* Write data to address */
 		case 'w':
@@ -184,6 +194,15 @@ int main(int argc, char **argv)
 			break;
 		case '/': /* yeah, not really good - a lot of errors can occur*/
 		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
 			break;
 		default:
 			fprintf(stderr, "Error, oops, we tripped\n");
