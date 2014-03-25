@@ -37,9 +37,9 @@ int printHelp()
 //  printf("  quit                   : q\n");
 //  printf("  info                   : i\n");
   printf("  driver info            : d\n");
-  printf("  repeat previous command: p\n");
+//  printf("  repeat previous command: p\n");
   printf("  single read rcu bus memory   : r[ead] 0x<address> (e.g.: r 0x7000)\n");
-//  printf("  multiple read rcu bus memory : r[ead] 0x<address> <dec no> (e.g.: r 0x7000 16)\n");
+  printf("  multiple read rcu bus memory : r[ead] 0x<address> <dec no> (e.g.: r 0x7000 16)\n");
 //  printf("                                 see 'hr\' for details and further options\n");
   printf("  single write rcu bus memory  : w[rite] [-s,--swap] 0x<address> 0x<data>\n");
   printf("                                 (e.g.: w 0x6800 0x34)\n");

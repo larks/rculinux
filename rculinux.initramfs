@@ -128,9 +128,10 @@ file /usr/bin/dbclient ${INSTALL_ROOT}/A2F/root/usr/bin/dbclient 755 0 0
 file /usr/bin/scp ${INSTALL_ROOT}/A2F/root/usr/bin/scp 755 0 0
 slink /usr/bin/ssh dbclient 777 0 0
 
-#Kernel modules
+# Kernel modules
 dir /lib 0755 0 0
 dir /lib/modules 0755 0 0
 dir /lib/modules/2.6.33-linux 0755 0 0
 file /lib/modules/2.6.33-linux/ad7417.ko ${INSTALL_ROOT}/projects/${SAMPLE}/drivers/ad7417.ko 644 0 0
+nod /dev/i2c-0   0666 0 0 c 89 0
 

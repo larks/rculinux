@@ -77,27 +77,7 @@ int main(int argc, char **argv)
 	for (n = argc-1; n > 0; n-- )
 	{
 	//fprintf(stdout, "argc=%d, argv(n=%d) = %s\n", argc, n, argv[n] );
-/*
-		if(argv[n][0] == '-' )
-		{
-			switch( (int)argv[n][1] )
-			{
-*/
-			/* Write output to file */
-/*
-			const char * strMode = "w";
-			case 'o':
-			case 'a':
-				if (argc > n){
-					if ((int)argv[n][1] == 'a' ) strMode = "a";
-						fp = fopen(argv[n+1], strMode);
-						if(fp == NULL){
-						fprintf(stderr, "Could not open file %s for writing.\n", argv[n+1]);
-						}
-				} 
-				else fprintf(stderr, "Missing argument to option %s \n", argv[n]);
-				break;
-*/
+
 			/* Format string */
 /*	
 			case 'f':
@@ -124,6 +104,7 @@ int main(int argc, char **argv)
 					exit(1);	
 				}
 			addr = parseNumber(argv[n+1]);
+			/* Multiple read */
 			if(parseNumber(argv[n+2])){
 				uint32_t iCnt;
 				for(iCnt = addr; iCnt < (addr+parseNumber(argv[n+2])); iCnt++ ){
@@ -203,10 +184,11 @@ int main(int argc, char **argv)
 		case '7':
 		case '8':
 		case '9':
+		case '#': /* Comments are thrown away */
 			break;
 		default:
-			fprintf(stderr, "Error, oops, we tripped\n");
-			//exit(1);
+			fprintf(stderr, "Error: oops, we tripped\n");
+			exit(1);
 			//return 1;
 			break;
 		}
