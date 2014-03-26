@@ -9,7 +9,7 @@
 #include <string.h> /* memset() */
 
 char** tokenize(const char*);
-char ***alloc_array(int, int);
+char **alloc_array(int);
 
 int main()
 {
@@ -73,18 +73,18 @@ int main()
 			current_pos = ftell(fd);
 				//int l;
 				char vikar[storkar];
-				char ***argBuf;
-				argBuf = alloc_array(1, biggest);
+				char **argBuf;
+				argBuf = alloc_array(biggest);
 				fseek(fd, last_pos, SEEK_SET); // seek to start of line
 				last_pos = current_pos;
 				while( (kar=fgetc(fd)) != '\n' ){
 					if( kar == '#' ) comment = 1;
-					if( (kar != ' ') && (!comment) && (kar != '\r') ){
+					if( (kar != ' ') && (!comment) && (kar != '\r') ){ 
 						vikar[karteller] = kar;
 						karteller++;
 					}
 					if( (kar == ' ') && (!comment) ){
-						strncpy(argBuf[0][strengteller], vikar, karteller);
+						strncpy(argBuf[strengteller], vikar, karteller);
 						strengteller++;
 						karteller = 0;
 						//*vikar = '\0';
@@ -92,15 +92,15 @@ int main()
 					}
 					//if( ftell(fd) == last_pos-3) strncpy(argBuf[0][strengteller], vikar, karteller);
 				}
-				strncpy(argBuf[0][strengteller], vikar, karteller);
+				strncpy(argBuf[strengteller], vikar, karteller);
 				//biggest = 0;
 				fseek(fd, last_pos, SEEK_SET); //
 				int b;
 				for(b=0; b!=biggest; b++){
-					fprintf(stdout, "a[0][%d]: %s ", b, argBuf[0][b]);
-					fprintf(out, "a[0][%d]: %s ", b, argBuf[0][b]);
+					fprintf(stdout, "a[%d]: %s ", b, argBuf[b]);
+					fprintf(out, "a[%d]: %s ", b, argBuf[b]);
 				}
-//				fprintf(stdout, "size: %lu", sizeof(argBuf));
+				fprintf(stdout, "size: %lu", sizeof(argBuf));
 				fprintf(stdout, "\n");
 				fprintf(out, "\n");
 				biggest = 0;
@@ -156,14 +156,11 @@ char ***alloc_array(int rows, int columns) {
     return a;
 }
 */
-char ***alloc_array(int rows, int columns) {
-    char ***a = (char ***) calloc(rows, sizeof(char **));
-    int i,j;
-    for(i = 0; i < rows; i++) {
-        a[i] = (char **) calloc(columns, sizeof(char *));
-        for(j = 0; j < columns; j++){
-        	a[i][j] = (char *) calloc(rows, sizeof(char));
-        }
+char **alloc_array(int columns) {
+    char **a = (char **) calloc(columns, sizeof(char *));
+    int i;
+    for(i = 0; i < columns; i++) {
+        a[i] = (char *) calloc(1, sizeof(char ));
     }
     return a;
 }
