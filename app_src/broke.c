@@ -14,7 +14,13 @@ char ***alloc_array(int, int);
 int main()
 {
 	FILE * fd = NULL;
+	FILE * out = NULL;
 	if ((fd = fopen("pedestal_ramp.script", "r")) < 0) {
+	//if ((fd = fopen("test.txt", "r")) < 0) {
+		fprintf(stderr, "unable to open file\n");
+	    exit(-1);
+	}
+	if ((out = fopen("out.txt", "w")) < 0) {
 	//if ((fd = fopen("test.txt", "r")) < 0) {
 		fprintf(stderr, "unable to open file\n");
 	    exit(-1);
@@ -33,7 +39,7 @@ int main()
 	 * Also count number of strings and find out 
 	 * number of cols we need for storing arguments
 	 */
-	int kar; /* Character holder */
+	int kar, space_kar; /* Character holder */
 	uint32_t newline_count = 0; /* Line counter */
 	unsigned long karteller = 0; /* Character counter */
 	uint32_t strengteller = 0; /* String counter */
@@ -45,9 +51,15 @@ int main()
 	
 	while ( (kar=fgetc(fd)) != EOF){
 		if( kar == '#' ) comment = 1; /* we have a comment, stop counting */
-		if( (kar != ' ') && (!comment) ) karteller++;
+		if( (kar != ' ') && (!comment) && (kar != '\r') ){
+			karteller++;
+			space_kar = 0;
+		}
 		if( (kar == ' ') && (!comment) ){
-			strengteller++;
+			if(space_kar<1){
+				strengteller++;
+			}
+			++space_kar;
 			if(karteller>storkar) storkar = karteller;
 			karteller = 0;
 		}
@@ -58,8 +70,8 @@ int main()
 			strengteller=0;
 			karteller = 0;
 			comment = 0;
-			current_pos = ftell(fd)+2;
-				int l;
+			current_pos = ftell(fd);
+				//int l;
 				char vikar[storkar];
 				char ***argBuf;
 				argBuf = alloc_array(1, biggest);
@@ -67,7 +79,7 @@ int main()
 				last_pos = current_pos;
 				while( (kar=fgetc(fd)) != '\n' ){
 					if( kar == '#' ) comment = 1;
-					if( (kar != ' ') && (!comment) ){
+					if( (kar != ' ') && (!comment) && (kar != '\r') ){
 						vikar[karteller] = kar;
 						karteller++;
 					}
@@ -75,25 +87,37 @@ int main()
 						strncpy(argBuf[0][strengteller], vikar, karteller);
 						strengteller++;
 						karteller = 0;
+						//*vikar = '\0';
+						vikar[0] = '\0';
 					}
-					if( ftell(fd) == last_pos-3) strncpy(argBuf[0][strengteller], vikar, karteller);
+					//if( ftell(fd) == last_pos-3) strncpy(argBuf[0][strengteller], vikar, karteller);
 				}
-				
-				
-			comment = 0;
-			fseek(fd, last_pos, SEEK_SET); //
-			int a;
-			for(a=0; a!=biggest; a++){
-				fprintf(stdout, "argBuf[0][%d]: %s ", a, argBuf[0][a]);
-			}
-			fprintf(stdout, "\n");
-			free(argBuf);
+				strncpy(argBuf[0][strengteller], vikar, karteller);
+				//biggest = 0;
+				fseek(fd, last_pos, SEEK_SET); //
+				int b;
+				for(b=0; b!=biggest; b++){
+					fprintf(stdout, "a[0][%d]: %s ", b, argBuf[0][b]);
+					fprintf(out, "a[0][%d]: %s ", b, argBuf[0][b]);
+				}
+//				fprintf(stdout, "size: %lu", sizeof(argBuf));
+				fprintf(stdout, "\n");
+				fprintf(out, "\n");
+				biggest = 0;
+				storkar = 0;
+				karteller = 0;
+				comment = 0;
+				strengteller = 0;
+				free(argBuf);
 		}
 	}
 //	rewind(fd);
 	
 	if (fd >= 0) {
 		fclose(fd);
+	}
+	if (out >= 0) {
+		fclose(out);
 	}
 	return 0;	
 }
