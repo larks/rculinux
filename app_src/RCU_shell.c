@@ -18,9 +18,10 @@ struct ArgDef {
 	char *e
 };
 */
-
+char **alloc_array(int);
 uint32_t registerAccess(uint32_t, uint32_t, char *);
 void executeCommands(uint32_t arg_count, char **arguments);
+//char **createArgumentBufferFromFile(FILE *fp, );
 
 unsigned int parseBinary(char *str) {
   unsigned int val = 0;
@@ -57,7 +58,7 @@ unsigned int parseNumber(char *str) {
 const char * dev_name = "/dev/sample2";
 /* File pointer for choosing where to put results */
 FILE *fp = NULL;
-
+FILE * fd = NULL;
 int main(int argc, char **argv)
 {
 	/* Check for arguments and print help prompt */
@@ -82,13 +83,88 @@ int main(int argc, char **argv)
 	if( (argv[1][0] == 'r') || 
 	    (argv[1][0] == 'w') ||
 	    (argv[1][0] == 'c') ){
+	    	fprintf(stdout, "entered\n");
 			executeCommands(argcBuffer, argv);
-			fprintf(stdout, "Hei\n");
+			//fprintf(stdout, "Hei\n");
 	}
+	/* Run command execution on each line in file */
 	if(argv[1][0] == 'b'){
-		/* Run command execution on each line in file */
+		//FILE * fd = NULL;
+		fprintf(stdout, "argv[2]: %s", argv[2]);
+		if ((fd = fopen(argv[2], "r")) < 0) {
+			fprintf(stderr, "unable to open file\n");
+		    exit(-1);
+		}
+		
+		int kar; 
+		int space_kar = 0; /* Character holder */
+		uint32_t newline_count = 0; /* Line counter */
+		unsigned long karteller = 0; /* Character counter */
+		uint32_t strengteller = 0; /* String counter */
+		uint32_t biggest = 0; /* Biggest number of strings */
+		uint32_t storkar = 0; /* Hold the size of the largest string */
+		uint8_t comment = 0; /* Indicate if we reached a comment */
+		uint32_t current_pos = 0;
+		uint32_t last_pos = ftell(fd);
+		
+		while ( (kar=fgetc(fd)) != EOF){
+		if( kar == '#' ) comment = 1; /* we have a comment, stop counting */
+		if( (kar != ' ') && (!comment) && (kar != '\r') ){
+			karteller++;
+			space_kar = 0;
+		}
+		if( (kar == ' ') && (!comment) ){
+			if(space_kar<1){
+				strengteller++;
+			}
+			++space_kar;
+			if(karteller>storkar) storkar = karteller;
+			karteller = 0;
+		}
+		if(kar == '\n'){
+			strengteller++;
+			newline_count++;
+			if(strengteller>biggest) biggest=strengteller;
+			strengteller=0;
+			karteller = 0;
+			comment = 0;
+			current_pos = ftell(fd);
+				//int l;
+				char vikar[storkar];
+				char **argBuf;
+				argBuf = alloc_array(biggest);
+				fseek(fd, last_pos, SEEK_SET); // seek to start of line
+				last_pos = current_pos;
+				while( (kar=fgetc(fd)) != '\n' ){
+					if( kar == '#' ) comment = 1;
+					if( (kar != ' ') && (!comment) && (kar != '\r') ){ 
+						vikar[karteller] = kar;
+						karteller++;
+					}
+					if( (kar == ' ') && (!comment) ){
+						strncpy(argBuf[strengteller], vikar, karteller);
+						strengteller++;
+						karteller = 0;
+						//*vikar = '\0';
+						vikar[0] = '\0';
+					}
+				}
+				strncpy(argBuf[strengteller], vikar, karteller);
+				fseek(fd, last_pos, SEEK_SET);
+				executeCommands(strengteller, argBuf);
+				biggest = 0;
+				storkar = 0;
+				karteller = 0;
+				comment = 0;
+				strengteller = 0;
+				
+				free(argBuf);
+		}
+		}
+		
 	}
 	/* This is the end */
+	if (fd >= 0) fclose(fd); /* close batch file */
  	if( fp != stdout ) fclose(fp);
 	return 0;
 }
@@ -97,8 +173,8 @@ void executeCommands(uint32_t arg_count, char **arguments)
 {
 	uint32_t addr;
 	uint32_t data = 0x0;
-	int m, n,      /* Loop counters */
-	    ch;        /* character buffer */
+	int n;      /* Loop counter */
+//	    ch;        /* character buffer */
 	/* Go through arguments from last to first 
 	 * This is done so that additional options
 	 * are scanned before read/write options.
@@ -137,15 +213,15 @@ void executeCommands(uint32_t arg_count, char **arguments)
 		/* Write data to address */
 		case 'w':
 			if(arguments[n][1]) break; /* */
-			addr = parseNumber(arguments[n+1]);
+				addr = parseNumber(arguments[n+1]);
 			if (arg_count < 4){printHelp(); break;}
 			else
-			data = parseNumber(arguments[n+2]);
-			data = registerAccess(addr, data, "w");
-			data = registerAccess(addr, 0x0, "r");
+				data = parseNumber(arguments[n+2]);
+				data = registerAccess(addr, data, "w");
+				data = registerAccess(addr, 0x0, "r");
 			/* Print results */
 			if(!fp) fp=stdout;
-			fprintf(fp, "%#x: %#x\n", addr, data);
+				fprintf(fp, "%#x: %#x\n", addr, data);
 			break;
 		/* Write 0x0 to address */
 		case 'c':
@@ -267,4 +343,11 @@ uint32_t registerAccess(uint32_t address, uint32_t data, char * rORw)
 		}
 }
 
-
+char **alloc_array(int columns) {
+    char **a = (char **) calloc(columns, sizeof(char *));
+    int i;
+    for(i = 0; i < columns; i++) {
+        a[i] = (char *) calloc(1, sizeof(char ));
+    }
+    return a;
+}
