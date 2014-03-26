@@ -13,6 +13,11 @@
 #include "cmdInterpreter.h"
 #include <stdint.h> /* uint32_t etc.*/
 #include <stdlib.h> /* exit() */
+/*
+struct ArgDef {
+	char *e
+};
+*/
 
 uint32_t registerAccess(uint32_t, uint32_t, char *);
 void executeCommands(uint32_t arg_count, char **arguments);
@@ -61,12 +66,28 @@ int main(int argc, char **argv)
 		printHelp();
 		return -1;
 	}
+	fprintf(stdout, "%c\n", argv[1][0]);
 	
-
-
+	uint32_t argcBuffer = 0;
+	/* Check for comments
+	   NOTE: Not necessary other than when reading from file...
+	 */
+	while( argcBuffer != argc ){
+		if( argv[argcBuffer][0] == '#')
+			break;
+		argcBuffer++;
+	}
 	
-
-	executeCommands(argc, argv);
+	/* check the first arguments */
+	if( (argv[1][0] == 'r') || 
+	    (argv[1][0] == 'w') ||
+	    (argv[1][0] == 'c') ){
+			executeCommands(argcBuffer, argv);
+			fprintf(stdout, "Hei\n");
+	}
+	if(argv[1][0] == 'b'){
+		/* Run command execution on each line in file */
+	}
 	/* This is the end */
  	if( fp != stdout ) fclose(fp);
 	return 0;
@@ -177,6 +198,7 @@ void executeCommands(uint32_t arg_count, char **arguments)
 		case '7':
 		case '8':
 		case '9':
+		case '#': /* Comments are thrown away */
 			break;
 		default:
 			fprintf(stderr, "Error, oops, we tripped\n");
@@ -244,3 +266,5 @@ uint32_t registerAccess(uint32_t address, uint32_t data, char * rORw)
 			return -1;
 		}
 }
+
+
