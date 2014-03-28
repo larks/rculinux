@@ -1,7 +1,21 @@
-/*! \brief Main source for rcu-sh
- ** 
- ** 
- */
+/************************************************************************
+**
+**
+** This file is property of and copyright by the Experimental Nuclear 
+** Physics Group, Dep. of Physics and Technology
+** University of Bergen, Norway, 2014
+** This file has been written by Lars Bratrud,
+** Lars.Bratrud@cern.ch
+**
+** Permission to use, copy, modify and distribute this software and its  
+** documentation strictly for non-commercial purposes is hereby granted  
+** without fee, provided that the above copyright notice appears in all  
+** copies and that both the copyright notice and this permission notice  
+** appear in the supporting documentation. The authors make no claims    
+** about the suitability of this software for any purpose. It is         
+** provided "as is" without express or implied warranty.                 
+**
+*************************************************************************/
 
 #include <stdio.h>
 #include <string.h>
@@ -11,50 +25,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "cmdInterpreter.h"
-#include <stdint.h> /* uint32_t etc.*/
-#include <stdlib.h> /* exit() */
-/*
-struct ArgDef {
-	char *e
-};
-*/
+
 char **alloc_array(int);
-//char **createArgumentBufferFromFile(FILE *fp, );
 
-/*unsigned int parseBinary(char *str) {*/
-/*  unsigned int val = 0;*/
-/*  */
-/*  if (*str == 'b') {*/
-/*    str++;*/
-/*    while (*str) {*/
-/*      if (*str == '0') {*/
-/*        val <<= 1;*/
-/*      } else if (*str == '1') {*/
-/*        val = (val << 1) + 1;*/
-/*      } else {*/
-/*        goto binaryError;*/
-/*      }*/
-/*    }*/
-/*  }*/
-/*  return val;*/
-/* binaryError:*/
-/*  fprintf(stderr,"Unrecognized numeric value: %s\n",str);*/
-/*  return 999;*/
-/*}*/
-
-/*unsigned int parseNumber(char *str) {*/
-/*  unsigned int addr = 0;*/
-
-/*  if (!sscanf(str, "0x%x", &addr)) {*/
-/*    if (!sscanf(str, "%u", &addr)) {*/
-/*      addr = parseBinary(str);*/
-/*    }*/
-/*  }*/
-/*  return addr;*/
-/*}*/
 /* File pointers */
 FILE *fp = NULL; /* where to print results */
 FILE * fd = NULL; /* for batch file */
+
 int main(int argc, char **argv)
 {
 	/* Check for arguments and print help prompt */

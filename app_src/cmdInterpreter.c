@@ -1,13 +1,11 @@
-// $Id: cmdInterpreter.c,v 1.26 2007/03/17 00:01:16 richter Exp $
-
 /************************************************************************
 **
 **
 ** This file is property of and copyright by the Experimental Nuclear 
 ** Physics Group, Dep. of Physics and Technology
-** University of Bergen, Norway, 2004
-** This file has been written by Matthias Richter,
-** Matthias.Richter@ift.uib.no
+** University of Bergen, Norway, 2014
+** This file has been written by Lars Bratrud,
+** Lars.Bratrud@cern.ch
 **
 ** Permission to use, copy, modify and distribute this software and its  
 ** documentation strictly for non-commercial purposes is hereby granted  
@@ -21,7 +19,6 @@
 
 #include <stdio.h>
 #include <string.h>
-//#include "memoryguard.h"
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
