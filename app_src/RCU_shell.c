@@ -75,15 +75,15 @@ int main(int argc, char **argv)
 			break;
 		argcBuffer++;
 	}
-	
-	/* check the first arguments */
-	if( (argv[1][0] == 'r') || 
-	    (argv[1][0] == 'w') ||
-	    (argv[1][0] == 'c') ){
+	/* check for read or write */
+	if( (argv[1][0] == 'r') || /* read */
+	    (argv[1][0] == 'w') || /* write */
+	    (argv[1][0] == 'c') || /* write zero */
+	    (argv[1][0] == 'e') ){ /* log message */
 			executeCommands(argcBuffer-1, argv+1);
 	}
 	/* Run command execution on each line in file */
-	if(argv[1][0] == 'b'){
+	else if(argv[1][0] == 'b'){
 		if ((fd = fopen(argv[2], "r")) < 0) {
 			fprintf(stderr, "unable to open file\n");
 		    exit(-1);
@@ -159,6 +159,8 @@ int main(int argc, char **argv)
 		}
 		
 	}
+	else
+		fprintf(stdout, "Command not recognized!\n");
 	/* This is the end */
 	if (fd != NULL) fclose(fd); /* close batch file */
  	if( (fp != stdout) && (fp != NULL) ) fclose(fp);
@@ -232,6 +234,14 @@ void executeCommands(uint32_t arg_count, char **arguments)
 			if(!fp) fp=stdout;
 			fprintf(fp, "%#x: %#x\n", addr, data); /* The printing should happen outside the loop, this means we fill up a buffer*/
 			break;
+		/* Log message */
+		case 'e':
+			if(arguments[n][1]) break;
+			if(!fp) fp=stdout;
+			if( (arg_count > 3) && (arguments[n+2][0] != '-') )
+				 fprintf(fp, "Too many arguments\n");
+			else fprintf(fp, "%s\n", arguments[n+1]);
+			break;
 			
 		/* Here comes the additional options */
 		case '-':
@@ -274,7 +284,7 @@ void executeCommands(uint32_t arg_count, char **arguments)
 		case '#': /* Comments are thrown away */
 			break;
 		default:
-			fprintf(stderr, "Error, oops, we tripped\n");
+			//fprintf(stderr, "Error, oops, we tripped\n");
 			//exit(1);
 			//return 1;
 			break;
