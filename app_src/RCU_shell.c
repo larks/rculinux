@@ -82,18 +82,18 @@ int main(int argc, char **argv)
 //	fprintf(stdout, "argcBuf: %d\n", argcBuffer);
 	
 	/* check the first arguments */
-	//if( (argv[1][0] == 'r') || 
-	  //  (argv[1][0] == 'w') ||
-	   // (argv[1][0] == 'c') ){
-	   if(argv[1][0] == 'r'){
+	if( (argv[1][0] == 'r') || 
+	    (argv[1][0] == 'w') ||
+	    (argv[1][0] == 'c') ){
+//	   if(argv[1][0] == 'r'){
 	    	//fprintf(stdout, "entered\n");
-			executeCommands(argcBuffer, argv);
+			executeCommands(argcBuffer-1, argv+1);
 			//fprintf(stdout, "Hei\n");
 	}
 	/* Run command execution on each line in file */
 	if(argv[1][0] == 'b'){
 		//FILE * fd = NULL;
-		fprintf(stdout, "argv[2]: %s", argv[2]);
+		fprintf(stdout, "argv[2]: %s\n", argv[2]);
 		if ((fd = fopen(argv[2], "r")) < 0) {
 			fprintf(stderr, "unable to open file\n");
 		    exit(-1);
@@ -153,14 +153,17 @@ int main(int argc, char **argv)
 					}
 				}
 				strncpy(argBuf[strengteller], vikar, karteller);
+/*				fprintf(stdout, "strengteller: %d\n", strengteller);*/
+/*				int i;*/
+/*				for(i=0; i<=strengteller; i++) fprintf(stdout, "argBuf[%d]: %s\n", i, argBuf[i]);*/
 				fseek(fd, last_pos, SEEK_SET);
-				executeCommands(strengteller, argBuf);
+				executeCommands(strengteller+1, argBuf);
+				/* Free up */
 				biggest = 0;
 				storkar = 0;
 				karteller = 0;
 				comment = 0;
 				strengteller = 0;
-				
 				free(argBuf);
 		}
 		}
@@ -182,8 +185,9 @@ void executeCommands(uint32_t arg_count, char **arguments)
 	 * This is done so that additional options
 	 * are scanned before read/write options.
 	 */
-	for (n = arg_count-1; n > 0; n-- )
+	for (n = arg_count-1; n >= 0; n-- )
 	{
+/*		fprintf(stdout, "n: %d\n", n);*/
 		switch( (int)arguments[n][0] )
 		{
 		/* Read data in address */
