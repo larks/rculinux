@@ -48,7 +48,7 @@ readVer	: systemctrltest.o mss_sys_services.o mss_comblk.o
 		  $(CC) $(LDFLAGS) -o readVer systemctrltest.o mss_sys_services.o mss_comblk.o $(CFLAGS)
 
 # These are flags/tools used to build user-space programs
-CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall -lm -I/home/lars/work/linux-cortexm-1.11.0 -g
+CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall -lm -I/home/lars/work/linux-cortexm-1.11.0 -O0 -g
 LDFLAGS		:= -mcpu=cortex-m3 -mthumb -Wall -I/home/lars/work/linux-cortexm-1.11.0
 CC		= $(CROSS_COMPILE_APPS)gcc
 

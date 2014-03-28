@@ -134,3 +134,5 @@ dir /lib/modules 0755 0 0
 dir /lib/modules/2.6.33-linux 0755 0 0
 file /lib/modules/2.6.33-linux/ad7417.ko ${INSTALL_ROOT}/projects/${SAMPLE}/drivers/ad7417.ko 644 0 0
 
+#debugging
+file /bin/gdbserver ${INSTALL_ROOT}/A2F/root/usr/bin/gdbserver 755 0 0

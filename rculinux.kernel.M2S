@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.33
-# Wed Mar 12 17:42:36 2014
+# Thu Mar 27 15:25:20 2014
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -223,7 +223,7 @@ CONFIG_MACH_M2S=y
 #
 # M2S I/O interfaces
 #
-CONFIG_M2S_CACHE=y
+# CONFIG_M2S_CACHE is not set
 CONFIG_M2S_MSS_UART0=y
 CONFIG_M2S_MSS_UART1=y
 CONFIG_M2S_MSS_MAC=y
