@@ -22,22 +22,17 @@
 #ifndef _CMDINTERPRETER_H
 #define _CMDINTERPRETER_H
 
-//#define UINT_MAX 0xffffffff
-/* the limit for conversion pf the read output is set to 16bit unsigned
- * there is some strange behaviour in the float processing for higher values
- * e.g. unsigned int iHex=0xaaaaaaaa; float fVal=iHex;
- * gives fVal=2863311616.00 instead of 2863311530
- * unsigned int iHex=0xffffff; float fVal=iHex*2 + 1;
- * fVal=33554432.00 instead of 33554431
- */
-//#define INT_RO_MAX 0xffff
-/*
-int executeCommandArgs(int iNofArgs, const char** arrayArg);
-int executeCommandLine(char* pCmdLine);
-int terminateBatchProcessing();
-*/
+#include <stdint.h>
+#include <stdlib.h>
+
+/* RCU2 register access driver name */
+//const char * dev_name = "/dev/sample2";
 
 int printHelp();
+uint32_t registerAccess(uint32_t, uint32_t, char *);
+void executeCommands(uint32_t arg_count, char **arguments, FILE * fp);
+unsigned int parseBinary(char *str);
+unsigned int parseNumber(char *str);
 //int printInfo();
 
 #endif // _CMDINTERPRETER_H
