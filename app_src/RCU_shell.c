@@ -221,7 +221,7 @@ void executeCommands(uint32_t arg_count, char **arguments)
 		case 'w':
 			if(arguments[n][1]) break; /* */
 				addr = parseNumber(arguments[n+1]);
-			if (arg_count < 4){printHelp(); break;}
+			if (arg_count < 3){printHelp(); break;}
 			else
 				data = parseNumber(arguments[n+2]);
 				data = registerAccess(addr, data, "w");
