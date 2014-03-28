@@ -41,7 +41,7 @@ int printHelp()
   printf("  single read rcu bus memory   : r[ead] 0x<address> (e.g.: r 0x7000)\n");
   printf("  multiple read rcu bus memory : r[ead] 0x<address> <dec no> (e.g.: r 0x7000 16)\n");
 //  printf("                                 see 'hr\' for details and further options\n");
-  printf("  single write rcu bus memory  : w[rite] [-s,--swap] 0x<address> 0x<data>\n");
+  printf("  single write rcu bus memory  : w[rite] 0x<address> 0x<data>\n");
   printf("                                 (e.g.: w 0x6800 0x34)\n");
 //  printf("  multiple write with const    : w[rite] [-s,--swap] 0x<address> <dec no> 0x<data>\n");
 //  printf("                                 (e.g.: w 0x6800 12 0x0a)\n");
@@ -50,10 +50,14 @@ int printHelp()
   printf("                           -b10 binary compressed 10 bit, -c ascii\n");
   printf("     optional number after the filepath specifies count for partially write\n");
   printf("     e.g.: w 0x6800 -c 'pedestal.dat' 512,  w 0x7000 'pgm.dat'\n");
+*/
   printf("  sending a single command     : c 0x<address> (translated to w <address> 0x0\n");
+/*
   printf("  check status of mem location : ? 0x<address> [[c,f] 0x<bitmask> 0x<pattern>]\n");
   printf("                                               [t n s(ec)/u(sec)]\n");
+*/
   printf("  batch processing             : b[atch] 'filepath' [[-l] <count>,-i]\n");
+/*
   printf("                                 see \'hb\' for details and further options\n");
   printf("  wait command                 : wait <n> s(ec)/u(sec)\n");
   printf("  log message                  : e[cho] [-o,-a <filename>] <message>\n");

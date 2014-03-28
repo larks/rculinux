@@ -56,9 +56,9 @@ unsigned int parseNumber(char *str) {
 }
 
 const char * dev_name = "/dev/sample2";
-/* File pointer for choosing where to put results */
-FILE *fp = NULL;
-FILE * fd = NULL;
+/* File pointers */
+FILE *fp = NULL; /* where to print results */
+FILE * fd = NULL; /* for batch file */
 int main(int argc, char **argv)
 {
 	/* Check for arguments and print help prompt */
@@ -67,9 +67,6 @@ int main(int argc, char **argv)
 		printHelp();
 		return -1;
 	}
-//	int i; 
-/*	for(i=0; i!=argc; i++)*/
-/*	fprintf(stdout, "%s\n", argv[i]);*/
 	
 	/* Check for comments */
 	uint32_t argcBuffer = 0;
@@ -77,23 +74,16 @@ int main(int argc, char **argv)
 		if( argv[argcBuffer][0] == '#')
 			break;
 		argcBuffer++;
-/*		fprintf(stdout, "argcBuf: %d\n", argcBuffer);*/
 	}
-//	fprintf(stdout, "argcBuf: %d\n", argcBuffer);
 	
 	/* check the first arguments */
 	if( (argv[1][0] == 'r') || 
 	    (argv[1][0] == 'w') ||
 	    (argv[1][0] == 'c') ){
-//	   if(argv[1][0] == 'r'){
-	    	//fprintf(stdout, "entered\n");
 			executeCommands(argcBuffer-1, argv+1);
-			//fprintf(stdout, "Hei\n");
 	}
 	/* Run command execution on each line in file */
 	if(argv[1][0] == 'b'){
-		//FILE * fd = NULL;
-		fprintf(stdout, "argv[2]: %s\n", argv[2]);
 		if ((fd = fopen(argv[2], "r")) < 0) {
 			fprintf(stderr, "unable to open file\n");
 		    exit(-1);
