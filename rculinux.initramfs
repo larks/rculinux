@@ -103,9 +103,9 @@ file /usr/share/udhcpc/default.script ${INSTALL_ROOT}/projects/${SAMPLE}/local/d
 slink /usr/bin/[ ../../bin/busybox 777 0 0
 slink /usr/bin/[[ ../../bin/busybox 777 0 0
 
-file /app ${INSTALL_ROOT}/projects/${SAMPLE}/app/app 755 0 0
-file /sample.ko ${INSTALL_ROOT}/projects/${SAMPLE}/app/sample.ko 755 0 0
-nod /dev/sample 0600 0 0 c 166 0
+#file /app ${INSTALL_ROOT}/projects/${SAMPLE}/app/app 755 0 0
+#file /sample.ko ${INSTALL_ROOT}/projects/${SAMPLE}/app/sample.ko 755 0 0
+#nod /dev/sample 0600 0 0 c 166 0
 
 # Debug tools
 file /bin/peekpoke ${INSTALL_ROOT}/projects/${SAMPLE}/peekpoke/peekpoke 755 0 0
@@ -137,3 +137,8 @@ nod /dev/i2c-0   0666 0 0 c 89 0
 
 #debugging
 file /bin/gdbserver ${INSTALL_ROOT}/A2F/root/usr/bin/gdbserver 755 0 0
+
+# Cool tools
+file /usr/bin/netperf ${INSTALL_ROOT}/A2F/netperf-2.6.0/build-arm/src/netperf 755 0 0
+file /usr/bin/netserver ${INSTALL_ROOT}/A2F/netperf-2.6.0/build-arm/src/netserver 755 0 0
+
