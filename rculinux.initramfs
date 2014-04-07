@@ -134,6 +134,8 @@ dir /lib/modules 0755 0 0
 dir /lib/modules/2.6.33-linux 0755 0 0
 file /lib/modules/2.6.33-linux/ad7417.ko ${INSTALL_ROOT}/projects/${SAMPLE}/drivers/ad7417.ko 644 0 0
 nod /dev/i2c-0   0666 0 0 c 89 0
+nod /dev/i2c-1   0666 0 0 c 89 1
+
 
 #debugging
 file /bin/gdbserver ${INSTALL_ROOT}/A2F/root/usr/bin/gdbserver 755 0 0
@@ -141,4 +143,10 @@ file /bin/gdbserver ${INSTALL_ROOT}/A2F/root/usr/bin/gdbserver 755 0 0
 # Cool tools
 file /usr/bin/netperf ${INSTALL_ROOT}/A2F/netperf-2.6.0/build-arm/src/netperf 755 0 0
 file /usr/bin/netserver ${INSTALL_ROOT}/A2F/netperf-2.6.0/build-arm/src/netserver 755 0 0
+
+#i2c tools
+file /usr/bin/i2cdetect ${INSTALL_ROOT}/projects/loadSPI/i2c-tools/tools/i2cdetect 755 0 0
+file /usr/bin/i2cdump ${INSTALL_ROOT}/projects/loadSPI/i2c-tools/tools/i2cdump 755 0 0
+file /usr/bin/i2cget ${INSTALL_ROOT}/projects/loadSPI/i2c-tools/tools/i2cget 755 0 0
+file /usr/bin/i2cset ${INSTALL_ROOT}/projects/loadSPI/i2c-tools/tools/i2cset 755 0 0
 
