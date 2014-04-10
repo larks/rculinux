@@ -183,7 +183,23 @@ void executeCommands(uint32_t arg_count, char **arguments, FILE * fp)
 				 fprintf(fp, "Too many arguments\n");
 			else fprintf(fp, "%s\n", arguments[n+1]);
 			break;
-			
+		case 's':
+			if(arguments[n][1] != 'n') break;
+			   //int eSize;
+			   char * buffer;
+			   FILE * eeprom;
+			   size_t result;
+			   eeprom = fopen("/sys/bus/i2c/devices/0-0054/eeprom", "rb");
+			   if(eeprom == NULL){
+			      fprintf(stderr, "Failed to open file\n");
+			      exit(-1);
+	           }
+	           buffer = (char*) malloc(sizeof(char)*8);
+	           result = fread(buffer, 1, 8, eeprom);
+	           fprintf(stdout, "SN: %s\n", buffer);
+	           fclose(eeprom);
+	           free(buffer);
+			break;
 		/* Here comes the additional options */
 		case '-':
 			switch( (int)arguments[n][1] )

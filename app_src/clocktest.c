@@ -70,8 +70,8 @@ int main(void)
 	
 	buffer = (char*) malloc(sizeof(char)*lSize);
 	
-	//char serial[] = {'C','A','F','E'};
-	
+	//char serial[] = {'C','A','F','E','B','A','B','E'};
+	//fwrite(serial, sizeof(char), lSize, test);
 	//fwrite(serial, sizeof(char), sizeof(serial), test);
 	//rewind(test);
 	

@@ -35,7 +35,7 @@ FILE * fd = NULL; /* for batch file */
 int main(int argc, char **argv)
 {
 	/* Check for arguments and print help prompt */
-	if(argc < 3){
+	if(argc < 2){
 		//fprintf(stderr, "");
 		printHelp();
 		return -1;
@@ -52,6 +52,7 @@ int main(int argc, char **argv)
 	if( (argv[1][0] == 'r') || /* read */
 	    (argv[1][0] == 'w') || /* write */
 	    (argv[1][0] == 'c') || /* write zero */
+	    (argv[1][0] == 's') || /* Ask for serial number */
 	    (argv[1][0] == 'e') ){ /* log message */
 			executeCommands(argcBuffer-1, argv+1, fp);
 	}
