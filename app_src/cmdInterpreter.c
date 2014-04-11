@@ -61,18 +61,18 @@ unsigned int parseNumber(char *str) {
   return addr;
 }
 
-int printHelp()
+int printHelp(void)
 {
-  printf("  all parameters are hex values preceeded by a '0x' or decimal numbers\n");
-  printf("  some of the commands have a short version, in most cases the first letter\n");
+  printf("  All parameters are hex values preceeded by a '0x' or decimal numbers\n");
+  printf("  Some of the commands have a short version, in most cases the first letter\n");
 //  printf("  quit                   : q\n");
 //  printf("  info                   : i\n");
-  printf("  driver info            : d\n");
+  printf("  Driver info            : d\n");
 //  printf("  repeat previous command: p\n");
-  printf("  single read rcu bus memory   : r[ead] 0x<address> (e.g.: r 0x7000)\n");
-  printf("  multiple read rcu bus memory : r[ead] 0x<address> <dec no> (e.g.: r 0x7000 16)\n");
+  printf("  Single read rcu bus memory   : r[ead] 0x<address> (e.g.: r 0x7000)\n");
+  printf("  Multiple read rcu bus memory : r[ead] 0x<address> <dec no> (e.g.: r 0x7000 16)\n");
 //  printf("                                 see 'hr\' for details and further options\n");
-  printf("  single write rcu bus memory  : w[rite] 0x<address> 0x<data>\n");
+  printf("  Single write rcu bus memory  : w[rite] 0x<address> 0x<data>\n");
   printf("                                 (e.g.: w 0x6800 0x34)\n");
 //  printf("  multiple write with const    : w[rite] [-s,--swap] 0x<address> <dec no> 0x<data>\n");
 //  printf("                                 (e.g.: w 0x6800 12 0x0a)\n");
@@ -82,12 +82,13 @@ int printHelp()
   printf("     optional number after the filepath specifies count for partially write\n");
   printf("     e.g.: w 0x6800 -c 'pedestal.dat' 512,  w 0x7000 'pgm.dat'\n");
 */
-  printf("  sending a single command     : c 0x<address> (translated to w <address> 0x0\n");
+  printf("  Sending a single command     : c 0x<address> (translated to w <address> 0x0\n");
 /*
   printf("  check status of mem location : ? 0x<address> [[c,f] 0x<bitmask> 0x<pattern>]\n");
   printf("                                               [t n s(ec)/u(sec)]\n");
 */
-  printf("  batch processing             : b[atch] 'filepath' [[-l] <count>,-i]\n");
+  printf("  Batch processing             : b[atch] 'filepath' [[-l] <count>,-i]\n");
+  printf("  Read RCU serial number       : sn                                  \n");
 /*
   printf("                                 see \'hb\' for details and further options\n");
   printf("  wait command                 : wait <n> s(ec)/u(sec)\n");
@@ -108,10 +109,20 @@ int printHelp()
   return 0;
 }
 
+int printBatchProcHelp(void) {
+  printf("  The \'batch\' command:\n");
+  printf("  Reads commands from a file and executes them sequencially\n");
+  printf("    b[atch] 'filepath'\n");
+  printf("  Formatting of file\n");
+  printf("    c 0x5106\n    w 0x5100 0x7ff\n    r 0x5100 # This is a comment\n");
+  return 0;
+}
+
 void executeCommands(uint32_t arg_count, char **arguments, FILE * fp)
 {
 	uint32_t addr;
 	uint32_t data = 0x0;
+	uint8_t PrintAddress = 0;
 	int n;      /* Loop counter */
 //	    ch;        /* character buffer */
 	/* Go through arguments from last to first 
@@ -126,6 +137,11 @@ void executeCommands(uint32_t arg_count, char **arguments, FILE * fp)
 		/* Read data in address */
 		case 'r':
 			if(arguments[n][1]) break; /* Temporary solution */
+			// Rather have a flag that tells us we want to format...
+			if((arguments[n+2][0]=='-'&&arguments[n+2][1]=='f')||
+			   (arguments[n+3][0]=='-'&&arguments[n+3][1]=='f')){
+			     fprintf(stdout, "I want to format\n");
+			   }
 			char temp[2];
 			temp[0] = arguments[n+2][0];
 			temp[1] = arguments[n+2][1];
@@ -149,7 +165,7 @@ void executeCommands(uint32_t arg_count, char **arguments, FILE * fp)
 				if(!fp) fp=stdout;
 				fprintf(fp, "%#x: %#x\n", addr, data);
 			}
-			break;
+		break;
 		/* Write data to address */
 		case 'w':
 			if(arguments[n][1]) break; /* */
@@ -162,7 +178,7 @@ void executeCommands(uint32_t arg_count, char **arguments, FILE * fp)
 			/* Print results */
 			if(!fp) fp=stdout;
 				fprintf(fp, "%#x: %#x\n", addr, data);
-			break;
+		break;
 		/* Write 0x0 to address */
 		case 'c':
 			if(arguments[n][1]) break;
@@ -174,7 +190,7 @@ void executeCommands(uint32_t arg_count, char **arguments, FILE * fp)
 			/* Print results */
 			if(!fp) fp=stdout;
 			fprintf(fp, "%#x: %#x\n", addr, data); /* The printing should happen outside the loop, this means we fill up a buffer*/
-			break;
+		break;
 		/* Log message */
 		case 'e':
 			if(arguments[n][1]) break;
@@ -182,11 +198,12 @@ void executeCommands(uint32_t arg_count, char **arguments, FILE * fp)
 			if( (arg_count > 3) && (arguments[n+2][0] != '-') )
 				 fprintf(fp, "Too many arguments\n");
 			else fprintf(fp, "%s\n", arguments[n+1]);
-			break;
+		break;
+		/* Read serial number */
 		case 's':
 			if(arguments[n][1] != 'n') break;
 			   //int eSize;
-			   char * buffer;
+			   char * EEPROMbuffer;
 			   FILE * eeprom;
 			   size_t result;
 			   eeprom = fopen("/sys/bus/i2c/devices/0-0054/eeprom", "rb");
@@ -194,12 +211,12 @@ void executeCommands(uint32_t arg_count, char **arguments, FILE * fp)
 			      fprintf(stderr, "Failed to open file\n");
 			      exit(-1);
 	           }
-	           buffer = (char*) malloc(sizeof(char)*8);
-	           result = fread(buffer, 1, 8, eeprom);
-	           fprintf(stdout, "SN: %s\n", buffer);
+	           EEPROMbuffer = (char*) malloc(sizeof(char)*8);
+	           result = fread(EEPROMbuffer, 1, 8, eeprom);
+	           fprintf(stdout, "SN: %s\n", EEPROMbuffer);
 	           fclose(eeprom);
-	           free(buffer);
-			break;
+	           free(EEPROMbuffer);
+		break;
 		/* Here comes the additional options */
 		case '-':
 			switch( (int)arguments[n][1] )
@@ -220,13 +237,36 @@ void executeCommands(uint32_t arg_count, char **arguments, FILE * fp)
 				break;
 			/* Format string */
 			case 'f':
+				uint32_t iPrintStringLength = 0;
+				char * iPrintStringFormat;
+				uint32_t FormatCnt = 0;
 				if(arg_count > n){
-					
-				}
+					if( (iPrintStringLength = strlen(arguments[n+1])) > 0 ){
+						// create memory... TODO: remember to free up
+						iPrintStringFormat = (char*)calloc(iPrintStringLength, sizeof(char));
+						memcpy(iPrintStringFormat, arguments[n+1], iPrintStringLength);
+						/* Check if we want the address printed*/
+						for(i=0;i<iPrintStringLength;i++){
+							if(iPrintStringFormat[i] == '%'){
+							  FormatCnt++;
+							  PrintAddress = (iPrintStringFormat[i+1] == 'a') ? 1 : 0;
+							}
+						}
+					}
 				else fprintf(stderr, "Missing argument to option %s \n", arguments[n]);
 				break;
 			}
-			break;
+		break;
+		/* Help dialogues */
+		case 'h':
+			if(arguments[n][1] == 'b'){
+				printBatchProcHelp();
+				break;
+			}
+			else{
+				fprintf(stdout, "I don't understand what you want help with\n");
+				break;
+			}
 		case '/': /* yeah, not really good - a lot of errors can occur*/
 		case '0':
 		case '1':

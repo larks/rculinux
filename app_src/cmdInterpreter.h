@@ -36,10 +36,11 @@
 
 /*! 
  * Prints help for the commands
- * @return 0 if successful
- * 
+ * @return 0 if successful 
+ * @ingroup cmdinterpreter
 */
-int printHelp();
+int printHelp(void);
+int printBatchProcHelp(void);
 
 /*!
  * Access registers on SmartFusion2

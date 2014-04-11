@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 	    (argv[1][0] == 'w') || /* write */
 	    (argv[1][0] == 'c') || /* write zero */
 	    (argv[1][0] == 's') || /* Ask for serial number */
+	    (argv[1][0] == 'h') || /* Help dialogues */
 	    (argv[1][0] == 'e') ){ /* log message */
 			executeCommands(argcBuffer-1, argv+1, fp);
 	}
