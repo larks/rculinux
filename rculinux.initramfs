@@ -93,6 +93,7 @@ slink /bin/find busybox 777 0 0
 slink /bin/tar busybox 777 0 0
 slink /bin/dmesg busybox 777 0 0
 slink /bin/uptime busybox 777 0 0
+slink /bin/mdev busybox 777 0 0
 #
 dir /usr 755 0 0
 dir /usr/bin 755 0 0
@@ -150,3 +151,6 @@ file /usr/bin/i2cdump ${INSTALL_ROOT}/projects/loadSPI/i2c-tools/tools/i2cdump 7
 file /usr/bin/i2cget ${INSTALL_ROOT}/projects/loadSPI/i2c-tools/tools/i2cget 755 0 0
 file /usr/bin/i2cset ${INSTALL_ROOT}/projects/loadSPI/i2c-tools/tools/i2cset 755 0 0
 
+# test
+file /usr/bin/rd ${INSTALL_ROOT}/projects/rculinux/app_src/rd 755 0 0
+file /usr/bin/readVer ${INSTALL_ROOT}/projects/rculinux/app_src/readVer 755 0 0

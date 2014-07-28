@@ -7,7 +7,7 @@
 MODULE_LICENSE( "GPL" );
 MODULE_AUTHOR( "Eivind Askeland" );
 
-#define CHIP_ADDRESS 0x28   /* i2c address. */
+#define CHIP_ADDRESS 0x2a   /* i2c address. (was 0x28) */
 #define BUS_NO       0      /* i2c bus. */
 
 /* Internal representation of one chip. */

@@ -10,4 +10,5 @@ mount -o nolock,rsize=1024 192.168.1.10:/export/dcs_sw /mnt
 mount -o nolock,rsize=1024 192.168.1.0:/export/iperf /iperf
 dropbear
 insmod /usr/share/sample2.ko
+mdev -s
 
