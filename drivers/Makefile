@@ -13,8 +13,8 @@ clean		: clean_modules
 #apps		: $(APPS)	
 
 # These are flags/tools used to build user-space programs
-CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb
-LDFLAGS		:= -mcpu=cortex-m3 -mthumb
+CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall
+LDFLAGS		:= -mcpu=cortex-m3 -mthumb -Wall
 CC		= $(CROSS_COMPILE_APPS)gcc
 
 # Clean-up after user-space programs
