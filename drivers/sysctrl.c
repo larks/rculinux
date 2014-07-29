@@ -258,4 +258,4 @@ module_exit(sysctrl_cleanup_module);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Lars Bratrud, lars.bratrud@cern.ch");
-MODULE_DESCRIPTION("sysctrl device driver");
+MODULE_DESCRIPTION("System controller device driver");
