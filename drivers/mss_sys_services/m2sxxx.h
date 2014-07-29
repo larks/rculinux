@@ -13,6 +13,16 @@
 #ifndef __SMARTFUSION2_CMSIS_PAL_H__
 #define __SMARTFUSION2_CMSIS_PAL_H__
 
+/* IO definitions */
+#ifdef __cplusplus
+  #define   __I     volatile             /*!< Defines 'read only' permissions                 */
+#else
+    #define   __I     volatile const       /*!< Defines 'read only' permissions                 */
+#endif
+#define     __O     volatile             /*!< Defines 'write only' permissions                */
+#define     __IO    volatile             /*!< Defines 'read / write' permissions              */
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -131,7 +141,7 @@ typedef enum IRQn
 #define __NVIC_PRIO_BITS          4         /*!< Number of Bits used for Priority Levels         */
 #define __Vendor_SysTickConfig    0         /*!< Set to 1 if different SysTick Config is used    */
 
-#include <core_cm3.h>   /* Cortex-M3 processor and core peripherals           */
+//#include <core_cm3.h>   /* Cortex-M3 processor and core peripherals           */
 
 /******************************************************************************/
 /*                Device Specific Peripheral registers structures             */

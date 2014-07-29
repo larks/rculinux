@@ -77,7 +77,7 @@
 #ifndef __MSS_SYS_SERVICES_H_
 #define __MSS_SYS_SERVICES_H_ 1
 
-#include "../../CMSIS/m2sxxx.h"
+#include "m2sxxx.h"
 
 #ifdef __cplusplus
 extern "C" {

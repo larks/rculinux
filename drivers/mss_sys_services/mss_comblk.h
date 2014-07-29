@@ -11,6 +11,16 @@
 
 #include "m2sxxx.h"
 
+/* Grabbed from arch/arm/common/nvic.c */
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/smp.h>
+
+#include <asm/irq.h>
+#include <asm/io.h>
+#include <asm/mach/irq.h>
+#include <asm/hardware/nvic.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
