@@ -13,7 +13,7 @@ clean		: clean_modules
 #apps		: $(APPS)	
 
 # These are flags/tools used to build user-space programs
-CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall
+CFLAGS		:= -Os -mcpu=cortex-m3 -mthumb -Wall -I./mss_sys_services
 LDFLAGS		:= -mcpu=cortex-m3 -mthumb -Wall
 CC		= $(CROSS_COMPILE_APPS)gcc
 
@@ -23,12 +23,14 @@ CC		= $(CROSS_COMPILE_APPS)gcc
 
 # Edit the line below to modify a set of loadable modules
 # you need to build 
+# fiex error: http://stackoverflow.com/questions/7490070/missing-component-in-a-kernel-module-with-several-source-files
+sysctrl-objs	:= sysctrl-base.o mss_sys_services/mss_sys_services.o mss_sys_services/mss_comblk.o
 obj-m		+= minim.o sample2.o radmonc.o ad7417.o sysctrl.o
 
 # Define dependencies for a particular module
 # sample-y	:= some.o
-sysctrl-y	:= mss_sys_services/mss_sys_services.o mss_sys_services/mss_comblk.o
-
+#sysctrl-y	:= mss_sys_services/mss_sys_services.o mss_sys_services/mss_comblk.o
+#lib-y	:= mss_sys_services/mss_sys_services.o mss_sys_services/mss_comblk.o
 #mss_comblk.o	: mss_sys_services/mss_comblk.c mss_sys_services/mss_comblk.h mss_sys_services/m2sxxx.h
 #		  $(CC) -c mss_sys_services/mss_comblk.c $(CFLAGS)
 #mss_sys_services.o : mss_sys_services/mss_sys_services.c mss_sys_services/mss_sys_services.h mss_sys_services/mss_comblk.h mss_sys_services/mss_assert.h
@@ -42,7 +44,7 @@ KERNELDIR	:=  $(INSTALL_ROOT)/linux
 
 # Build the modules in this directory
 modules		:
-	make -C $(KERNELDIR) M=`pwd` modules CFLAGS="" LDFLAGS=""
+	make -C $(KERNELDIR) SUBDIRS=`pwd` M=`pwd` modules CFLAGS="" LDFLAGS="" 
 
 # Clean-up after modules
 clean_modules:
