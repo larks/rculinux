@@ -21,6 +21,7 @@
 #endif
 #define     __O     volatile             /*!< Defines 'write only' permissions                */
 #define     __IO    volatile             /*!< Defines 'read / write' permissions              */
+#include <linux/types.h>
 
 
 #ifdef __cplusplus

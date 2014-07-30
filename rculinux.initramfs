@@ -117,7 +117,8 @@ file /usr/share/sample2.ko ${INSTALL_ROOT}/projects/${SAMPLE}/drivers/sample2.ko
 nod /dev/sample2 0600 0 0 c 177 0
 nod /dev/radmonc 0600 0 0 c 253 0
 file /usr/share/sysctrl.ko ${INSTALL_ROOT}/projects/${SAMPLE}/drivers/sysctrl.ko 755 0 0
-nod /dev/sysctrl 0600 0 0 c 166 0
+nod /dev/sysctrl 0600 0 0 c 169 0
+file /usr/bin/ioctltest ${INSTALL_ROOT}/projects/rculinux/app_src/ioctltest 755 0 0
 
 # Dropbear ssh server
 dir /etc/dropbear 0755 0 0

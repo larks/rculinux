@@ -9,7 +9,7 @@
 #include "mss_sys_services.h"
 #include "mss_comblk.h"
 #include "mss_assert.h"
-#include <string.h>
+#include <linux/string.h>
 
 /*==============================================================================
  *

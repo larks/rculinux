@@ -34,6 +34,11 @@ typedef uint32_t (*comblk_page_handler_t)(uint8_t const ** pp_next_page);
 
 typedef void (*comblk_async_event_handler_t)(uint8_t event_opcode);
 
+/* Helper functions */
+void NVIC_DisableIRQ(unsigned int irq);
+void NVIC_EnableIRQ(unsigned int irq);
+void NVIC_ClearPendingIRQ(unsigned int irq);
+
 /*------------------------------------------------------------------------------
  *
  */

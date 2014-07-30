@@ -33,6 +33,10 @@ read.o		: read.c sys_services.h comblk.h
 		   $(CC) -c read.c $(CFLAGS)
 rd		: read.o comblk.o sys_services.o
 		  $(CC) $(LDFLAGS) -o rd read.o comblk.o sys_services.o $(CFLAGS)
+progioctl.o   : progioctl.c ../drivers/query_ioctl.h
+	$(CC) -c progioctl.c $(CFLAGS)
+ioctltest   : progioctl.o
+	$(CC) $(LDFLAGS) -o ioctltest progioctl.o $(CFLAGS)
 
 # system controller stuff
 mss_sys_services.o : sc_drivers/mss_sys_services/mss_sys_services.c sc_drivers/mss_sys_services/mss_sys_services.h sc_drivers/mss_sys_services/mss_comblk.h sc_drivers/CMSIS/mss_assert.h

@@ -27,6 +27,14 @@ obj-m		+= minim.o sample2.o radmonc.o ad7417.o sysctrl.o
 
 # Define dependencies for a particular module
 # sample-y	:= some.o
+sysctrl-y	:= mss_sys_services/mss_sys_services.o mss_sys_services/mss_comblk.o
+
+#mss_comblk.o	: mss_sys_services/mss_comblk.c mss_sys_services/mss_comblk.h mss_sys_services/m2sxxx.h
+#		  $(CC) -c mss_sys_services/mss_comblk.c $(CFLAGS)
+#mss_sys_services.o : mss_sys_services/mss_sys_services.c mss_sys_services/mss_sys_services.h mss_sys_services/mss_comblk.h mss_sys_services/mss_assert.h
+#		  $(CC) -c mss_sys_services/mss_sys_services.c $(CFLAGS)
+#sysctrl.o	:=	mss_comblk.o mss_sys_services.o
+#		  $(CC) 
 
 # Path to the kernel modules directory in context of which
 # these loadable modules are built

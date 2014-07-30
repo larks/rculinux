@@ -8,7 +8,7 @@
  */
  
 #include "mss_comblk.h"
-#include "../../CMSIS/mss_assert.h"
+#include "mss_assert.h"
 
 /*==============================================================================
  *
@@ -80,6 +80,36 @@ static uint8_t g_request_in_progress = 0u;
 static uint8_t g_comblk_state = COMBLK_IDLE;
 
 static comblk_async_event_handler_t g_async_event_handler = 0;
+
+static DEFINE_SPINLOCK(irq_controller_lock);
+
+/* Interrupt functions */
+void NVIC_DisableIRQ(unsigned int irq)
+{
+	u32 mask = 1 << (irq % 32);
+
+	spin_lock(&irq_controller_lock);
+	writel(mask, NVIC_CLEAR_ENABLE + irq / 32 * 4);
+	spin_unlock(&irq_controller_lock);
+}
+
+void NVIC_EnableIRQ(unsigned int irq)
+{
+	u32 mask = 1 << (irq % 32);
+
+	spin_lock(&irq_controller_lock);
+	writel(mask, NVIC_SET_ENABLE + irq / 32 * 4);
+	spin_unlock(&irq_controller_lock);
+}
+
+void NVIC_ClearPendingIRQ(unsigned int irq)
+{
+	u32 mask = 1 << (irq % 32);
+
+	spin_lock(&irq_controller_lock);
+	writel(mask, NVIC_CLEAR_PENDING + irq / 32 * 4);
+	spin_unlock(&irq_controller_lock);
+}
 
 /*==============================================================================
  *

@@ -13,49 +13,6 @@
 #ifndef __MSS_ASSERT_H_
 #define __MSS_ASSERT_H_
 
-#include <assert.h>
-
-#if defined ( __GNUC__   )
-
-#if defined(NDEBUG)
-
-#define ASSERT(CHECK)
-
-#else   /* NDEBUG */
-/*
- * SoftConsole assertion handling
- */
-#define ASSERT(CHECK)  \
-    do { \
-        if (!(CHECK)) \
-        { \
-            __asm volatile ("BKPT\n\t"); \
-        } \
-    } while (0);
-    
-#endif  /* NDEBUG */
-
-#elif defined ( __ICCARM__ )
-/*
- * IAR Embedded Workbench assertion handling.
- * Call C library assert function which should result in error message
- * displayed in debugger.
- */
-#define ASSERT(X)   assert(X)
-
-#else
-/*
- * Keil assertion handling.
- * Call C library assert function which should result in error message
- * displayed in debugger.
- */
-
-#ifndef __MICROLIB
-  #define ASSERT(X)   assert(X)
-#else
-  #define ASSERT(X)
-#endif
-
-#endif
+#define ASSERT(x) do { if (!(x)) BUG(); } while (0)
 
 #endif  /* __MSS_ASSERT_H_ */

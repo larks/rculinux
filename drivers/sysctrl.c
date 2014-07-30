@@ -23,6 +23,8 @@
 #include <linux/init.h>
 #include <linux/fs.h>
 #include <asm/uaccess.h>
+#include <linux/types.h>
+
 
 #include "query_ioctl.h"
 #include "mss_sys_services/mss_comblk.h"
@@ -32,6 +34,9 @@
  * Driver verbosity level: 0->silent; >0->verbose
  */
 static int sysctrl_debug = 0;
+uint8_t status;
+uint8_t serial_number[16];
+uint32_t i;
 
 /*
  * User can change verbosity of the driver
@@ -188,7 +193,16 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 	switch(cmd)
 	{
 		case READ_IDCODE:
-			d_printk(1, "Read ID code...\n");
+			d_printk(0, "Read ID code...\n");
+			MSS_SYS_init(MSS_SYS_NO_EVENT_HANDLER);
+			status = MSS_SYS_get_serial_number(serial_number);
+			if(MSS_SYS_SUCCESS == status){
+				d_printk(0, "Got serial number: 0x");
+					d_printk(0, "%s", serial_number);
+					d_printk(0,"\n");
+			}
+			else d_printk(0, "Failed to get serial number\n");
+            // testa MSS_SYS_init(void);
 			break;
 		//case PROGRAM:
 		//case VERIFY:
