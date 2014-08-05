@@ -9,6 +9,7 @@
  
 #include "mss_comblk.h"
 #include "mss_assert.h"
+#include "../core_cm3.h"
 
 /*==============================================================================
  *
@@ -41,6 +42,18 @@
 #define COMBLK_WAIT_RESPONSE    3u
 #define COMBLK_RX_RESPONSE      4u
 #define COMBLK_TX_PAGED_DATA    5u
+
+/*
+ * Driver verbosity level: 0->silent; >0->verbose
+ */
+static int comblk_debug = 1;
+/*
+ * Service to print debug messages
+ */
+#define d_printk(level, fmt, args...)				\
+	if (comblk_debug >= level) printk(KERN_INFO "%s: " fmt,	\
+					__func__, ## args)
+
 
 /*==============================================================================
  * COMBLK interrupt servcie routine.
@@ -81,9 +94,10 @@ static uint8_t g_comblk_state = COMBLK_IDLE;
 
 static comblk_async_event_handler_t g_async_event_handler = 0;
 
-static DEFINE_SPINLOCK(irq_controller_lock);
+/*static DEFINE_SPINLOCK(irq_controller_lock);*/
 
 /* Interrupt functions */
+/*
 void NVIC_DisableIRQ(unsigned int irq)
 {
 	u32 mask = 1 << (irq % 32);
@@ -110,7 +124,7 @@ void NVIC_ClearPendingIRQ(unsigned int irq)
 	writel(mask, NVIC_CLEAR_PENDING + irq / 32 * 4);
 	spin_unlock(&irq_controller_lock);
 }
-
+*/
 /*==============================================================================
  *
  */
@@ -120,8 +134,12 @@ void MSS_COMBLK_init(comblk_async_event_handler_t async_event_handler)
      * Disable and clear previous interrupts.
      */
     NVIC_DisableIRQ(ComBlk_IRQn);
+    d_printk(1, "NVIC_DisableIRQ() done.\n");
     COMBLK->INT_ENABLE = 0u;
+    d_printk(1, "COMBLK->INT_ENABLE set to %#x.\n", COMBLK->INT_ENABLE);
     NVIC_ClearPendingIRQ(ComBlk_IRQn);
+    d_printk(1, "NVIC_ClearPendingIRQ done.\n");
+    
     
     g_async_event_handler = async_event_handler;
     
@@ -140,17 +158,23 @@ void MSS_COMBLK_init(comblk_async_event_handler_t async_event_handler)
     g_comblk_completion_handler = 0;
     
     g_comblk_state = COMBLK_IDLE;
-    
+    d_printk(1, "COMBLK->CONTROL: %#x\n",COMBLK->CONTROL);
     COMBLK->CONTROL |= CR_ENABLE_MASK;
+    d_printk(1, "COMBLK->CONTROL: %#x\n",COMBLK->CONTROL);
     COMBLK->CONTROL &= ~CR_LOOPBACK_MASK;
+    d_printk(1, "COMBLK->CONTROL: %#x\n",COMBLK->CONTROL);
     
     /*--------------------------------------------------------------------------
      * Enable receive interrupt to receive asynchronous events from the system
      * controller.
      */
+    d_printk(1, "COMBLK->INT_ENABLE: %#x\n",COMBLK->INT_ENABLE);
     COMBLK->INT_ENABLE &= ~TXTOKAY_MASK;
+    d_printk(1, "COMBLK->INT_ENABLE: %#x\n",COMBLK->INT_ENABLE);
     COMBLK->INT_ENABLE |= RCVOKAY_MASK;
+    d_printk(1, "COMBLK->INT_ENABLE: %#x\n",COMBLK->INT_ENABLE);
     NVIC_EnableIRQ(ComBlk_IRQn);
+    d_printk(1, "NVIC_EnableIRQ done.\n");
 }
 
 /*==============================================================================
