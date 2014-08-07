@@ -25,6 +25,8 @@
 #include <asm/uaccess.h>
 #include <linux/types.h>
 
+#include <linux/interrupt.h>
+#include <linux/irq.h>
 
 #include "query_ioctl.h"
 #include "mss_sys_services/mss_comblk.h"
@@ -190,25 +192,34 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 #endif
 {
 	//query_arg_t query;
+	int ret_irq;
+	ret_irq = request_irq(ComBlk_IRQn, ComBlk_IRQHandler, 0, "sysctrl", 0);
+	if(ret_irq < 0){
+		d_printk(1,"request_irq failed with %d", ret_irq);
+		return -1;
+	}
 	switch(cmd)
 	{
 		case READ_IDCODE:
-			d_printk(0, "Read serial number...\n");
+			d_printk(2, "Read serial number...\n");
 			MSS_SYS_init(MSS_SYS_NO_EVENT_HANDLER);
-			d_printk(0, "Passed init.\n");
-			d_printk(1, "Before we get serial number, the variable is: %s", serial_number);
+			d_printk(2, "Passed init.\n");
+			d_printk(2, "Before we get serial number, the variable is: %s", serial_number);
 			status = MSS_SYS_get_serial_number(serial_number);
-			d_printk(0, "Passed serial number get.\n");
+			d_printk(2, "Passed serial number get.\n");
 			uint32_t ii = 0;
-			d_printk(1, "Got serial number? %#02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", serial_number[15], serial_number[14]
+			d_printk(2, "Got serial number? %#02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", serial_number[15], serial_number[14]
 			, serial_number[13], serial_number[12], serial_number[11], serial_number[10]
 			, serial_number[9],  serial_number[8],  serial_number[7],  serial_number[6]
 			, serial_number[5],  serial_number[4],  serial_number[3],  serial_number[2]
 			, serial_number[1],  serial_number[0]);
-			d_printk(1, "Status: %#x", status);
+			d_printk(2, "Status: %#x", status);
 			if(MSS_SYS_SUCCESS == status){
-				d_printk(0, "Got serial number: 0x");
-					d_printk(0, "%s", serial_number);
+				d_printk(1, "Got serial number: %#02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", serial_number[15], serial_number[14]
+				, serial_number[13], serial_number[12], serial_number[11], serial_number[10]
+				, serial_number[9],  serial_number[8],  serial_number[7],  serial_number[6]
+				, serial_number[5],  serial_number[4],  serial_number[3],  serial_number[2]
+				, serial_number[1],  serial_number[0]);
 				break;
 			}
 			else if(MSS_SYS_MEM_ACCESS_ERROR == status){
@@ -228,6 +239,7 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 			return -EINVAL;
 	
 	}
+	free_irq(ComBlk_IRQn, ComBlk_IRQHandler);
 	return 0;
 }
 

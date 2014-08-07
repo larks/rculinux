@@ -97,6 +97,9 @@ void MSS_COMBLK_send_paged_cmd
     void (*completion_handler)(uint8_t *, uint16_t)
 );
 
+//void ComBlk_IRQHandler(void);
+irqreturn_t ComBlk_IRQHandler(int irq, void *dev_id);
+
 #ifdef __cplusplus
 }
 #endif

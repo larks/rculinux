@@ -15,7 +15,7 @@
 /*
  * Driver verbosity level: 0->silent; >0->verbose
  */
-static int sysserv_debug = 1;
+static int sysserv_debug = 3;
 /*
  * Service to print debug messages
  */
@@ -133,6 +133,7 @@ void MSS_SYS_init(sys_serv_async_event_handler_t event_handler)
     d_printk(1, "Request in progress set to 0.\n");
     g_last_response_length = 0u;
     d_printk(1, "Last response length set to 0.\n");
+    //ComBlk_IRQHandler
 }
 
 /*==============================================================================
@@ -166,13 +167,13 @@ uint8_t MSS_SYS_get_serial_number
 {
     uint8_t response[SERIAL_NUMBER_SERV_RESP_LENGTH];
     uint8_t status;
-    d_printk(1, "execute_service");
-    d_printk(1, "COMBLK->STATUS: %#x", COMBLK->STATUS);
+    d_printk(2, "execute_service");
+    d_printk(2, "COMBLK->STATUS: %#x", COMBLK->STATUS);
     status = execute_service(SERIAL_NUMBER_REQUEST_CMD,
                              p_serial_number,
                              response,
                              SERIAL_NUMBER_SERV_RESP_LENGTH);
-	d_printk(1, "passed?");
+	d_printk(2, "passed?");
     
     return status;
 }
@@ -751,20 +752,24 @@ static uint8_t execute_service
 {
     uint8_t status;
     uint16_t actual_response_length;
-    d_printk(1, "before signal_request_start()");
+    d_printk(2, "before signal_request_start()");
     signal_request_start();
-	d_printk(1, "after signal_request_start()");
-	d_printk(1, "COMBLK->STATUS: %#x", COMBLK->STATUS);
+	d_printk(2, "after signal_request_start()");
+	d_printk(3, "COMBLK->STATUS: %#x", COMBLK->STATUS);
     MSS_COMBLK_send_cmd_with_ptr(cmd_opcode,                    /* cmd_opcode */
                                  (uint32_t)cmd_params_ptr,      /* cmd_params_ptr */
                                  response,                      /* p_response */
                                  response_length,               /* response_size */
                                  request_completion_handler);   /* completion_handler */
-	d_printk(1, "after MSS_COMBLK_send_cmd_with_ptr");
-	d_printk(1, "COMBLK->STATUS: %#x", COMBLK->STATUS);
+	d_printk(2, "after MSS_COMBLK_send_cmd_with_ptr");
+	d_printk(3, "COMBLK->STATUS: %#x", COMBLK->STATUS);
     actual_response_length = wait_for_request_completion();
-	d_printk(1, "after wait_for_request_completion()");
-	d_printk(1, "COMBLK->STATUS: %#x", COMBLK->STATUS);
+	d_printk(2, "after wait_for_request_completion()");
+	d_printk(3, "COMBLK->STATUS: %#x", COMBLK->STATUS);
+	d_printk(3, "response_length: %#x", response_length);
+	d_printk(3, "actual_response_length: %#x", actual_response_length);
+	d_printk(3, "response[0]: %#x", response[0]);
+	d_printk(3, "response[1]: %#x", response[1]);
     if((response_length == actual_response_length) && (cmd_opcode == response[0]))
     {
         status = response[1];
@@ -820,21 +825,24 @@ d_printk(1, "Before if - COMBLK->STATUS: %#X", COMBLK->STATUS);
 static uint16_t wait_for_request_completion(void)
 {
 /* This is stupid, fix plx*/
-d_printk(1, "Before if - COMBLK->STATUS: %#X", COMBLK->STATUS);
+d_printk(1, "Before if - COMBLK->STATUS: %#x", COMBLK->STATUS);
     while(g_request_in_progress)
     {	/*01.08.14 LARS*/
     //d_printk(1, "COMBLK->STATUS: %#X", COMBLK->STATUS);
-    	if(COMBLK->STATUS&&0x2){
-    		d_printk(1, "RCVOKAY!");
-    		d_printk(1, "TXFIFO: %#x", COMBLK->DATA32);
-    		d_printk(1, "COMBLK->STATUS: %#x", !COMBLK->STATUS);
-    		return g_last_response_length;
-    	}
-    	if( ((COMBLK->STATUS)&&0x1) && (!(COMBLK->STATUS) && 0x2) ){
-    		g_request_in_progress = 0;
-    		d_printk(1, "COMBLK->STATUS: %#X", COMBLK->STATUS);
-    	}
-    	else 
+    	//if(COMBLK->STATUS&&0x2){
+    	//d_printk(3, "g_last_response_length: %#x", g_last_response_length);
+    		//d_printk(3, "RCVOKAY!");
+    		//ComBlk_IRQHandler();
+    		//d_printk(1, "TXFIFO: %#x", COMBLK->DATA32);
+    		//d_printk(3, "COMBLK->STATUS: %#x", COMBLK->STATUS);
+    		//return g_last_response_length;
+    		//return g_comblk_response_idx;
+    	//}
+    	//if( ((COMBLK->STATUS)&&0x1) && (!(COMBLK->STATUS) && 0x2) ){
+    	//	g_request_in_progress = 0;
+    	//	d_printk(1, "COMBLK->STATUS: %#X", COMBLK->STATUS);
+    	//}
+    	//else 
     		;
         //;
     }

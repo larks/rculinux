@@ -46,7 +46,7 @@
 /*
  * Driver verbosity level: 0->silent; >0->verbose
  */
-static int comblk_debug = 1;
+static int comblk_debug = 3;
 /*
  * Service to print debug messages
  */
@@ -58,7 +58,7 @@ static int comblk_debug = 1;
 /*==============================================================================
  * COMBLK interrupt servcie routine.
  */
-void ComBlk_IRQHandler(void);
+//void ComBlk_IRQHandler(void);
 
 /*==============================================================================
  * Local functions.
@@ -134,11 +134,11 @@ void MSS_COMBLK_init(comblk_async_event_handler_t async_event_handler)
      * Disable and clear previous interrupts.
      */
     NVIC_DisableIRQ(ComBlk_IRQn);
-    d_printk(1, "NVIC_DisableIRQ() done.\n");
+    d_printk(3, "NVIC_DisableIRQ() done.\n");
     COMBLK->INT_ENABLE = 0u;
-    d_printk(1, "COMBLK->INT_ENABLE set to %#x.\n", COMBLK->INT_ENABLE);
+    d_printk(3, "COMBLK->INT_ENABLE set to %#x.\n", COMBLK->INT_ENABLE);
     NVIC_ClearPendingIRQ(ComBlk_IRQn);
-    d_printk(1, "NVIC_ClearPendingIRQ done.\n");
+    d_printk(3, "NVIC_ClearPendingIRQ done.\n");
     
     
     g_async_event_handler = async_event_handler;
@@ -158,23 +158,23 @@ void MSS_COMBLK_init(comblk_async_event_handler_t async_event_handler)
     g_comblk_completion_handler = 0;
     
     g_comblk_state = COMBLK_IDLE;
-    d_printk(1, "COMBLK->CONTROL: %#x\n",COMBLK->CONTROL);
+    d_printk(3, "COMBLK->CONTROL: %#x\n",COMBLK->CONTROL);
     COMBLK->CONTROL |= CR_ENABLE_MASK;
-    d_printk(1, "COMBLK->CONTROL: %#x\n",COMBLK->CONTROL);
+    d_printk(3, "COMBLK->CONTROL: %#x\n",COMBLK->CONTROL);
     COMBLK->CONTROL &= ~CR_LOOPBACK_MASK;
-    d_printk(1, "COMBLK->CONTROL: %#x\n",COMBLK->CONTROL);
+    d_printk(3, "COMBLK->CONTROL: %#x\n",COMBLK->CONTROL);
     
     /*--------------------------------------------------------------------------
      * Enable receive interrupt to receive asynchronous events from the system
      * controller.
      */
-    d_printk(1, "COMBLK->INT_ENABLE: %#x\n",COMBLK->INT_ENABLE);
+    d_printk(3, "COMBLK->INT_ENABLE: %#x\n",COMBLK->INT_ENABLE);
     COMBLK->INT_ENABLE &= ~TXTOKAY_MASK;
-    d_printk(1, "COMBLK->INT_ENABLE: %#x\n",COMBLK->INT_ENABLE);
+    d_printk(3, "COMBLK->INT_ENABLE: %#x\n",COMBLK->INT_ENABLE);
     COMBLK->INT_ENABLE |= RCVOKAY_MASK;
-    d_printk(1, "COMBLK->INT_ENABLE: %#x\n",COMBLK->INT_ENABLE);
+    d_printk(3, "COMBLK->INT_ENABLE: %#x\n",COMBLK->INT_ENABLE);
     NVIC_EnableIRQ(ComBlk_IRQn);
-    d_printk(1, "NVIC_EnableIRQ done.\n");
+    d_printk(3, "NVIC_EnableIRQ done.\n");
 }
 
 /*==============================================================================
@@ -213,7 +213,8 @@ void MSS_COMBLK_send_cmd_with_ptr
     g_comblk_p_data = 0u;
     g_comblk_data_size = 0u;
     g_comblk_p_response = p_response;
-    g_comblk_response_size = response_size;
+// orig:   g_comblk_response_size = response_size;
+//	response_size = g_comblk_response_size;
     g_comblk_response_idx = 0u;
     g_comblk_page_handler = 0u;
     g_comblk_completion_handler = completion_handler;
@@ -246,6 +247,7 @@ void MSS_COMBLK_send_cmd_with_ptr
      */
     COMBLK->INT_ENABLE |= RCVOKAY_MASK;
     NVIC_EnableIRQ(ComBlk_IRQn);
+    g_comblk_response_size = response_size; // LARs
 }
 
 /*==============================================================================
@@ -403,7 +405,8 @@ void MSS_COMBLK_send_paged_cmd
 /*==============================================================================
  * COMBLK interrupt handler.
  */
-void ComBlk_IRQHandler(void)
+/*void ComBlk_IRQHandler(void)*/
+irqreturn_t ComBlk_IRQHandler(int irq, void *dev_id)
 {
     uint8_t status;
     uint8_t tx_okay;
@@ -417,14 +420,17 @@ void ComBlk_IRQHandler(void)
     rcv_okay = status & RCVOKAY_MASK;
     if(rcv_okay)
     {
+    	d_printk(3, "rcv_okay");
         handle_rx_okay_irq();
     }
         
     tx_okay = status & TXTOKAY_MASK;
     if(tx_okay)
     {
+    	d_printk(3, "tx_okay");
         handle_tx_okay_irq();
     }
+    return IRQ_RETVAL(1);
 }
 
 /*==============================================================================
