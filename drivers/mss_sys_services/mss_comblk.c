@@ -408,6 +408,10 @@ void MSS_COMBLK_send_paged_cmd
 /*void ComBlk_IRQHandler(void)*/
 irqreturn_t ComBlk_IRQHandler(int irq, void *dev_id)
 {
+	/*
+	struct sample_dev *dev = dev_id;
+	*/
+
     uint8_t status;
     uint8_t tx_okay;
     uint8_t rcv_okay;

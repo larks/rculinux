@@ -22,7 +22,7 @@
 #include <linux/version.h>
 #include <linux/init.h>
 #include <linux/fs.h>
-#include <asm/uaccess.h>
+#include <asm/uaccess.h> /*get_user(), put_user()*/
 #include <linux/types.h>
 
 #include <linux/interrupt.h>
@@ -31,6 +31,8 @@
 #include "query_ioctl.h"
 #include "mss_sys_services/mss_comblk.h"
 #include "mss_sys_services/mss_sys_services.h"
+
+#define SUCCESS 0
 
 /*
  * Driver verbosity level: 0->silent; >0->verbose
@@ -86,6 +88,17 @@ static char *sysctrl_end;
 static int sysctrl_open(struct inode *inode, struct file *file)
 {
 	int ret = 0;
+	
+	/*
+	struct sample_dev *dev = hwinfo + MINOR(inode->i_rdev);
+	request_irq(dev->irq, ComBlk_IRQHandler, 0, "sysctrl", dev);
+	*/
+	int ret_irq;
+	ret_irq = request_irq(ComBlk_IRQn, ComBlk_IRQHandler, 0, "sysctrl", 0);
+	if(ret_irq < 0){
+		d_printk(1,"request_irq failed with %d", ret_irq);
+		return -1;
+	}
 
 	/*
 	 * One process at a time
@@ -115,9 +128,11 @@ Done:
  */
 static int sysctrl_release(struct inode *inode, struct file *file)
 {
+	free_irq(ComBlk_IRQn, 0);
 	/*
  	 * Release device
  	 */
+ 	/*free_irq(ComBlk_IRQn, dev);*/
 	sysctrl_lock = 0;
 
 	/*
@@ -191,28 +206,34 @@ static int sysctrl_ioctl(struct inode *i, struct file *f, unsigned int cmd, unsi
 static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 #endif
 {
+	/* First do some general setup of the System Controller and 
+	 * Communication Block...
+	*/
 	//query_arg_t query;
+	/* Remove this if the stuff in 'open' and 'release' works (it should damnit) */
+	/*
 	int ret_irq;
 	ret_irq = request_irq(ComBlk_IRQn, ComBlk_IRQHandler, 0, "sysctrl", 0);
 	if(ret_irq < 0){
 		d_printk(1,"request_irq failed with %d", ret_irq);
 		return -1;
 	}
+	
+	else MSS_SYS_init(MSS_SYS_NO_EVENT_HANDLER);
+	*/
+	MSS_SYS_init(MSS_SYS_NO_EVENT_HANDLER);
+	/* Then we check the command 
+	 *
+	*/
 	switch(cmd)
 	{
 		case READ_IDCODE:
 			d_printk(2, "Read serial number...\n");
-			MSS_SYS_init(MSS_SYS_NO_EVENT_HANDLER);
+			
 			d_printk(2, "Passed init.\n");
 			d_printk(2, "Before we get serial number, the variable is: %s", serial_number);
 			status = MSS_SYS_get_serial_number(serial_number);
 			d_printk(2, "Passed serial number get.\n");
-			uint32_t ii = 0;
-			d_printk(2, "Got serial number? %#02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", serial_number[15], serial_number[14]
-			, serial_number[13], serial_number[12], serial_number[11], serial_number[10]
-			, serial_number[9],  serial_number[8],  serial_number[7],  serial_number[6]
-			, serial_number[5],  serial_number[4],  serial_number[3],  serial_number[2]
-			, serial_number[1],  serial_number[0]);
 			d_printk(2, "Status: %#x", status);
 			if(MSS_SYS_SUCCESS == status){
 				d_printk(1, "Got serial number: %#02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", serial_number[15], serial_number[14]
@@ -233,13 +254,30 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 			else d_printk(0, "Failed to get serial number\n");
             // testa MSS_SYS_init(void);
 			break;
-		//case PROGRAM:
+		case PROG_AUTHENTICATE:
+			d_printk(1, "Authentification...");
+			/*
+			g_isp_operation_busy = 1;
+			g_src_image_target_address = 0;
+			MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE, page_read_handler, isp_completion_handler);
+			while(g_isp_operation_busy){ ; }
+			if(!g_isp_operation_busy){
+				//f_close(file);
+				if(g_error_flag == MSS_SYS_SUCCESS){
+					d_printk(1, "ISP Authentification completed successfully!");
+				}
+				else{
+					d_printk(1, "ISP Authentification failed!");
+				}
+			}
+			*/
+			break;
 		//case VERIFY:
 		default:
 			return -EINVAL;
 	
 	}
-	free_irq(ComBlk_IRQn, ComBlk_IRQHandler);
+	/*free_irq(ComBlk_IRQn, 0);*/
 	return 0;
 }
 
