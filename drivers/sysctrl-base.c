@@ -32,7 +32,8 @@
 #include "mss_sys_services/mss_comblk.h"
 #include "mss_sys_services/mss_sys_services.h"
 
-#define SUCCESS 0
+#define SUCCESS 0u
+#define BUF_LEN 80u
 
 /*
  * Driver verbosity level: 0->silent; >0->verbose
@@ -40,7 +41,10 @@
 static int sysctrl_debug = 1;
 uint8_t status;
 uint8_t serial_number[16] = {0};
-uint32_t i;
+uint32_t i = 0;
+/* Device message */
+static char Message[BUF_LEN];
+static char *Message_Ptr;
 
 /*
  * User can change verbosity of the driver
@@ -88,12 +92,13 @@ static char *sysctrl_end;
 static int sysctrl_open(struct inode *inode, struct file *file)
 {
 	int ret = 0;
+	int ret_irq;
+	d_printk(3, "%p", file);
 	
 	/*
 	struct sample_dev *dev = hwinfo + MINOR(inode->i_rdev);
 	request_irq(dev->irq, ComBlk_IRQHandler, 0, "sysctrl", dev);
 	*/
-	int ret_irq;
 	ret_irq = request_irq(ComBlk_IRQn, ComBlk_IRQHandler, 0, "sysctrl", 0);
 	if(ret_irq < 0){
 		d_printk(1,"request_irq failed with %d", ret_irq);
@@ -128,20 +133,15 @@ Done:
  */
 static int sysctrl_release(struct inode *inode, struct file *file)
 {
-	free_irq(ComBlk_IRQn, 0);
-	/*
- 	 * Release device
- 	 */
- 	/*free_irq(ComBlk_IRQn, dev);*/
+	/* Release interrupt and device */
+ 	free_irq(ComBlk_IRQn, 0);
 	sysctrl_lock = 0;
 
-	/*
- 	 * Decrement module use counter
- 	 */
+	/* Decrement module use counter */
 	module_put(THIS_MODULE);
 
 	d_printk(2, "lock=%d\n", sysctrl_lock);
-	return 0;
+	return SUCCESS;
 }
 
 /* 
@@ -153,6 +153,8 @@ static ssize_t sysctrl_read(struct file *filp, char *buffer,
 	char * addr;
 	unsigned int len = 0;
 	int ret = 0;
+	
+	d_printk(3, "read(%p,%p,%d)", filp, buffer, length);
 
 	/*
  	 * Check that the user has supplied a valid buffer
@@ -195,8 +197,14 @@ Done:
 static ssize_t sysctrl_write(struct file *filp, const char *buffer,
 			  size_t length, loff_t * offset)
 {
-	d_printk(3, "length=%d\n", length);
-	return -EIO;
+	int n;
+	d_printk(3, "write(%p,%p,%d)", filp, buffer, length);
+	for(n = 0; (n < length && n < BUF_LEN); n++)
+		get_user(Message[n], buffer+n);
+	Message_Ptr = Message;
+	
+	/* Return number of characters used */
+	return n;
 }
 
 /* IOCTL */
@@ -298,7 +306,7 @@ static struct file_operations sysctrl_fops = {
 
 static int __init sysctrl_init_module(void)
 {
-	int ret = 0;
+	int ret = SUCCESS;
 
 	/*
  	 * check that the user has supplied a correct major number
