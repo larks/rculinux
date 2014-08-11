@@ -7,6 +7,7 @@ typedef struct
     int status, dignity, ego;
 } query_arg_t;
 
+/* 'q' is MAJOR_NUM, where from? */ 
 #define READ_IDCODE _IOR('q', 1, query_arg_t *)
 #define PROG_AUTHENTICATE _IOWR('q', 2, query_arg_t *)
 //#define QUERY_CLR_VARIABLES _IO('q', 2)
