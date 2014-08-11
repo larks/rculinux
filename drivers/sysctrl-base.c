@@ -150,45 +150,20 @@ static int sysctrl_release(struct inode *inode, struct file *file)
 static ssize_t sysctrl_read(struct file *filp, char *buffer,
 			 size_t length, loff_t * offset)
 {
-	char * addr;
-	unsigned int len = 0;
-	int ret = 0;
-	
-	d_printk(3, "read(%p,%p,%d)", filp, buffer, length);
-
-	/*
- 	 * Check that the user has supplied a valid buffer
- 	 */
-	if (! access_ok(0, buffer, length)) {
-		ret = -EINVAL;
-		goto Done;
+	/* Number of bytes written to buffer */
+	int bytes_read = 0;
+	/* Check for end of message */
+	if(*Message_Ptr == 0) return 0;
+	/* Put data into buffer */
+	while(length && *Message_Ptr){
+		put_user(*(Message_Ptr++), buffer++);
+		length--;
+		bytes_read++;
 	}
+	d_printk(3, "Read %d bytes, %d left", bytes_read, length);
 
-	/*
- 	 * Get access to the device "data"
- 	 */
-	addr = sysctrl_str + *offset;
-
-	/*
-	 * Check for an EOF condition.
-	 */
-	if (addr >= sysctrl_end) {
-		ret = 0;
-		goto Done;
-	}
-
-	/*
- 	 * Read in the required or remaining number of bytes into
- 	 * the user buffer
- 	 */
-	len = addr + length < sysctrl_end ? length : sysctrl_end - addr;
-	strncpy(buffer, addr, len);
-	*offset += len;
-	ret = len;
-
-Done:
-	d_printk(3, "length=%d,len=%d,ret=%d\n", length, len, ret);
-	return ret;
+	/* Return number of bytes read from buffer */
+	return bytes_read;
 }
 
 /* 
