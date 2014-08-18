@@ -15,7 +15,7 @@
 /*
  * Driver verbosity level: 0->silent; >0->verbose
  */
-static int sysserv_debug = 3;
+static int sysserv_debug = 0;
 /*
  * Service to print debug messages
  */
