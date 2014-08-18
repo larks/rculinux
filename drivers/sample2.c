@@ -355,13 +355,13 @@ int initRealBuffers(void)
 /*  int iNofErr=0; */
   /* Trigger and readout module */
   apbbus_in_virtbase_TRM  = (u32*) ioremap_nocache((u32)apbbus_in_physaddr_TRM,apbbus_in_size);
-  d_printk(0, "Remapped TRM from 0x%p to 0x%p",apbbus_in_physaddr_TRM, apbbus_in_virtbase_TRM);
+  d_printk(1, "Remapped TRM from 0x%p to 0x%p",apbbus_in_physaddr_TRM, apbbus_in_virtbase_TRM);
   if(apbbus_in_virtbase_TRM==NULL && apbbus_in_size>0 ){
     iResult=-EIO;
   }
   /* Monitoring and safety module */
   apbbus_in_virtbase_MSM  = (u32*) ioremap_nocache((u32)apbbus_in_physaddr_MSM,apbbus_in_size);
-  d_printk(0, "Remapped MSM from 0x%p to 0x%p",apbbus_in_physaddr_MSM, apbbus_in_virtbase_MSM);
+  d_printk(1, "Remapped MSM from 0x%p to 0x%p",apbbus_in_physaddr_MSM, apbbus_in_virtbase_MSM);
   if(apbbus_in_virtbase_TRM==NULL && apbbus_in_size>0 ){
     iResult=-EIO;
   }

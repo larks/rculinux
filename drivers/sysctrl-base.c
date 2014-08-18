@@ -24,6 +24,7 @@
 #include <linux/fs.h>
 #include <asm/uaccess.h> /*get_user(), put_user()*/
 #include <linux/types.h>
+#include <linux/errno.h>
 
 #include <linux/interrupt.h>
 #include <linux/irq.h>
@@ -36,7 +37,7 @@
 #define BUF_LEN 512u
 
 /* Driver verbosity level: 0->silent; >0->verbose */
-static int sysctrl_debug = 1;
+static int sysctrl_debug = 0;
 /* Misc. variables */
 uint8_t status;
 uint8_t serial_number[16] = {0};
@@ -69,14 +70,48 @@ static int sysctrl_lock = 0;
 /* 
 ** ISP related helper functions, handlers and variables
 */
-volatile uint8_t g_isp_operation_busy = 1;
-static uint32_t g_error_flag = 1;
+volatile uint8_t g_isp_operation_busy;
+static uint32_t g_error_flag;
+uint8_t g_page_buffer[BUF_LEN];
+uint8_t g_programming_mode = 0x0;
+uint32_t g_length = 0;
+const char *g_buffer;
+
 void isp_completion_handler(uint32_t value)
 {
 	g_error_flag = value;
 	g_isp_operation_busy = 0;
 }
 
+read_page_from_user(uint8_t * k_buffer, uint32_t length)
+{
+	uint32_t ibytes;
+	if((ibytes = copy_from_user(&g_page_buffer, k_buffer, length)) != 0){
+		return -EFAULT;
+	}
+	else
+	return (length - ibytes);
+
+}
+
+uint32_t page_read_handler
+(
+    uint8_t const ** pp_next_page
+)
+{
+
+//sysctrl_write(struct file *filp, const char *buffer, size_t length, loff_t * offset)
+
+//copy_from_user( to, from, n );
+
+//	uint8_t g_page_buffer[BUF_LEN];
+    uint32_t length;
+    //length = copy_from_user(&g_page_buffer, buffer, BUF_LEN);
+    length = g_length;
+    *pp_next_page = g_page_buffer;
+
+    return length;
+}
 
 /*
 ** Device open
@@ -155,13 +190,40 @@ static ssize_t sysctrl_read(struct file *filp, char *buffer,
 static ssize_t sysctrl_write(struct file *filp, const char *buffer,
 			  size_t length, loff_t * offset)
 {
-	int n;
+	int n=0;
 	d_printk(3, "write(%p,%p,%d)", filp, buffer, length);
-	for(n = 0; (n < length && n < BUF_LEN); n++){
-		get_user(Message[n], buffer+n);
+	/* Guess there are better ways of doing this...
+	** But for now, this way the user program is the one
+	** that tells us the status - if all data is written
+	** then everything should be OK. Now, this is not 100%
+	** fault free.
+	 */
+	if(g_programming_mode == AUTHENTICATE){
+		g_isp_operation_busy = 1;
+		g_buffer = &buffer;
+		MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE,page_read_handler,isp_completion_handler);
+		while(g_isp_operation_busy){;} /* Waiting for isp_completion_handler */
+		if(!g_isp_operation_busy){
+			
+			/* Error checking */
+			if(g_error_flag == MSS_SYS_SUCCESS) {
+				d_printk(1,"Authenticate succeeded, wrote %d bytes", n);
+				return n;
+			}
+			else {
+				d_printk(1, "Authenticate failed!");
+				return -EINVAL;
+			}
+		}
+		
+	} 
+	else if(g_programming_mode == VERIFY){
+		return 0;
 	}
-	Message_Ptr = Message;
-	
+	else if(g_programming_mode == PROGRAM){
+		return 0;
+	}
+	else
 	/* Return number of characters used */
 	return n;
 }
@@ -175,6 +237,7 @@ static int sysctrl_ioctl(struct inode *i, struct file *f, unsigned int cmd, unsi
 static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 #endif
 {
+	query_arg_t q;
 	MSS_SYS_init(MSS_SYS_NO_EVENT_HANDLER);
 
 	/* Check the command */
@@ -185,19 +248,23 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 			
 			d_printk(3, "Passed init.\n");
 			d_printk(3, "Before we get serial number, the variable is: %s", serial_number);
-			status = MSS_SYS_get_serial_number(serial_number);
+			status = MSS_SYS_get_serial_number(q.serial_number);
 			d_printk(3, "Passed serial number get.\n");
 			d_printk(3, "Status: %#x", status);
 			if(MSS_SYS_SUCCESS == status){
+				/* Replace with copy_to_user */
 				d_printk(1, "Got serial number: %#02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
-				, serial_number[15], serial_number[14]
-				, serial_number[13], serial_number[12]
-				, serial_number[11], serial_number[10]
-				, serial_number[ 9], serial_number[ 8]
-				, serial_number[ 7], serial_number[ 6]
-				, serial_number[ 5], serial_number[ 4]
-				, serial_number[ 3], serial_number[ 2]
-				, serial_number[ 1], serial_number[ 0]);
+				, q.serial_number[15], q.serial_number[14]
+				, q.serial_number[13], q.serial_number[12]
+				, q.serial_number[11], q.serial_number[10]
+				, q.serial_number[ 9], q.serial_number[ 8]
+				, q.serial_number[ 7], q.serial_number[ 6]
+				, q.serial_number[ 5], q.serial_number[ 4]
+				, q.serial_number[ 3], q.serial_number[ 2]
+				, q.serial_number[ 1], q.serial_number[ 0]);
+				
+				if( copy_to_user((query_arg_t *)arg, &q, sizeof(query_arg_t)) ) 
+				  return -EACCES;
 				break;
 			}
 			else if(MSS_SYS_MEM_ACCESS_ERROR == status){
@@ -212,23 +279,16 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 			break;
 		case PROG_AUTHENTICATE:
 			d_printk(1, "Authentification...");
-			/*
-			g_isp_operation_busy = 1;
-			g_src_image_target_address = 0;
-			MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE, page_read_handler, isp_completion_handler);
-			while(g_isp_operation_busy){ ; }
-			if(!g_isp_operation_busy){
-				//f_close(file);
-				if(g_error_flag == MSS_SYS_SUCCESS){
-					d_printk(1, "ISP Authentification completed successfully!");
-				}
-				else{
-					d_printk(1, "ISP Authentification failed!");
-				}
-			}
-			*/
+			g_programming_mode = AUTHENTICATE;
 			break;
-		//case VERIFY:
+		case PROG_VERIFY:
+			d_printk(1, "Verification...");
+			g_programming_mode = VERIFY;
+			break;
+		case PROG_PROGRAM:
+			d_printk(1, "Programming...");
+			g_programming_mode = PROGRAM;
+			break;
 		default:
 			return -EINVAL;
 	
