@@ -24,9 +24,10 @@ typedef struct
 /* 'q' is MAJOR_NUM, where from? */ 
 #define READ_IDCODE _IOR('q', 1, query_arg_t *)
 #define READ_USERCODE _IOR('q', 2, query_arg_t *)
-#define PROG_AUTHENTICATE _IOWR('q', 3, query_arg_t *)
-#define PROG_VERIFY _IOWR('q', 4, query_arg_t *)
-#define PROG_PROGRAM _IOWR('q', 5, query_arg_t *)
+#define READ_DESIGN_VERSION _IOR('q', 3, query_arg_t *)
+#define PROG_AUTHENTICATE _IOWR('q', 4, query_arg_t *)
+#define PROG_VERIFY _IOWR('q', 5, query_arg_t *)
+#define PROG_PROGRAM _IOWR('q', 6, query_arg_t *)
 //#define QUERY_CLR_VARIABLES _IO('q', 2)
 //#define QUERY_SET_VARIABLES _IOW('q', 3, query_arg_t *)
 

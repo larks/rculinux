@@ -293,6 +293,22 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 				break;
 			}
 			break;
+		case READ_DESIGN_VERSION:
+			status = MSS_SYS_get_design_version(q.design_version);
+			if(MSS_SYS_SUCCESS == status){
+				if( copy_to_user((query_arg_t *)arg, &q, sizeof(query_arg_t)) ) 
+				  return -EACCES;
+				break;
+			}
+			else if(MSS_SYS_MEM_ACCESS_ERROR == status){
+				d_printk(1, "MSS_SYS_MEM_ACCESS_ERROR");
+				break;
+			}
+			else if(MSS_SYS_UNEXPECTED_ERROR == status){
+				d_printk(1, "MSS_SYS_UNEXPECTED_ERROR");
+				break;
+			}
+			break;
 		case PROG_AUTHENTICATE:
 			d_printk(1, "Authentification...");
 			g_programming_mode = AUTHENTICATE;
