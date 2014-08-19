@@ -107,7 +107,8 @@ uint32_t page_read_handler
 //	uint8_t g_page_buffer[BUF_LEN];
     uint32_t length;
     //length = copy_from_user(&g_page_buffer, buffer, BUF_LEN);
-    length = g_length;
+    length = read_page_from_user(g_buffer, BUF_LEN);
+    g_length = length;
     *pp_next_page = g_page_buffer;
 
     return length;
@@ -170,16 +171,6 @@ static ssize_t sysctrl_read(struct file *filp, char *buffer,
 {
 	/* Number of bytes written to buffer */
 	int bytes_read = 0;
-	/* Check for end of message */
-	if(*Message_Ptr == 0) return 0;
-	/* Put data into buffer */
-	while(length && *Message_Ptr){
-		put_user(*(Message_Ptr++), buffer++);
-		length--;
-		bytes_read++;
-	}
-	d_printk(3, "Read %d bytes, %d left", bytes_read, length);
-
 	/* Return number of bytes read from buffer */
 	return bytes_read;
 }
@@ -191,7 +182,7 @@ static ssize_t sysctrl_write(struct file *filp, const char *buffer,
 			  size_t length, loff_t * offset)
 {
 	int n=0;
-	d_printk(3, "write(%p,%p,%d)", filp, buffer, length);
+	d_printk(0, "write(%p,%p,%d)", filp, buffer, length);
 	/* Guess there are better ways of doing this...
 	** But for now, this way the user program is the one
 	** that tells us the status - if all data is written
@@ -338,10 +329,11 @@ static struct file_operations sysctrl_fops = {
 	.open = sysctrl_open,
 	.release = sysctrl_release,
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,35))
-	.ioctl = sysctrl_ioctl
+	.ioctl = sysctrl_ioctl,
 #else
-	unlocked_ioctl = sysctrl_ioctl
+	unlocked_ioctl = sysctrl_ioctl,
 #endif
+	.mmap = sysctrl_mmap
 };
 
 static int __init sysctrl_init_module(void)
