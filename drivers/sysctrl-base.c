@@ -51,6 +51,7 @@ static int sysctrl_debug = 1;
 uint8_t status;
 uint8_t serial_number[16] = {0};
 uint32_t i = 0;
+static uint32_t bits_length = 0;
 /* Device message */
 static char Message[BUF_LEN];
 static char *Message_Ptr;
@@ -90,9 +91,9 @@ static int sysctrl_lock = 0;
 /* 
 ** ISP related helper functions, handlers and variables
 */
-volatile uint8_t g_isp_operation_busy = 0;
+volatile uint8_t g_isp_operation_busy = 1;
 static uint32_t g_error_flag;
-uint8_t g_page_buffer[BUF_LEN];
+//uint8_t g_page_buffer[BUF_LEN];
 static uint8_t g_programming_mode = 0x0;
 static uint32_t g_src_image_target_address = 0;
 uint32_t g_length = 0;
@@ -123,11 +124,13 @@ uint32_t page_read_handler
 )
 {
 	printk("page_read_handler\n");
+//	bits_length;
 	
-    *pp_next_page = g_buffer + g_src_image_target_address;
-    g_src_image_target_address += BUF_LEN;
+    *pp_next_page = g_buffer;// + g_src_image_target_address;
+    //g_src_image_target_address += BUF_LEN;
 
-    return BUF_LEN;
+    //return BUF_LEN;
+    return bits_length;
 }
 
 /*
@@ -301,12 +304,16 @@ static ssize_t sysctrl_write(struct file *filp, const char *buffer,
 			  size_t length, loff_t * offset)
 {
 	int n=0;
+	bits_length = length;
 	d_printk(0, "write(%p,%p,%d)", filp, buffer, length);
 	d_printk(1, "Program mode: %#2x", g_programming_mode);
-	
+	//printk("offset before: %d\n", *offset);
 	g_buffer = kmalloc(length, GFP_ATOMIC);
+	printk("g_buffer length: %d\n", sizeof(g_buffer));
 	if(!g_buffer){d_printk(1, "kmalloc failed");}
-	if(copy_from_user(g_buffer, filp, length) != 0){d_printk(1, "failed copy_from_user");}
+	if( (n = copy_from_user(g_buffer, buffer, length)) != 0){d_printk(1, "failed copy_from_user");}
+	//printk("offset after: %d\n", *offset);
+	printk("n:%d",n);
 	
 	
 	
@@ -439,6 +446,12 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 			MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE,page_read_handler,isp_completion_handler);
 			while(g_isp_operation_busy){
 				printk(".");
+			}
+			if(!g_isp_operation_busy){
+				if(g_error_flag == MSS_SYS_SUCCESS){
+					printk("AUTH completed with success\n");
+				}
+				else printk("AUTH failed with error flag: %#x\n", g_error_flag);
 			}
 			break;
 		case PROG_VERIFY:
