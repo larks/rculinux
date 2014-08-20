@@ -22,12 +22,21 @@
 #include <linux/version.h>
 #include <linux/init.h>
 #include <linux/fs.h>
+#include <linux/debugfs.h>
 #include <asm/uaccess.h> /*get_user(), put_user()*/
 #include <linux/types.h>
 #include <linux/errno.h>
 
+#include <linux/slab.h>
+
 #include <linux/interrupt.h>
 #include <linux/irq.h>
+
+#include <linux/mm.h> /* mmap stuff */
+
+#ifndef VM_RESERVED
+# define  VM_RESERVED   (VM_DONTEXPAND | VM_DONTDUMP)
+#endif
 
 #include "query_ioctl.h"
 #include "mss_sys_services/mss_comblk.h"
@@ -37,7 +46,7 @@
 #define BUF_LEN 512u
 
 /* Driver verbosity level: 0->silent; >0->verbose */
-static int sysctrl_debug = 0;
+static int sysctrl_debug = 1;
 /* Misc. variables */
 uint8_t status;
 uint8_t serial_number[16] = {0};
@@ -45,6 +54,17 @@ uint32_t i = 0;
 /* Device message */
 static char Message[BUF_LEN];
 static char *Message_Ptr;
+
+/*
+** mmap
+*/
+struct dentry *file1; //?
+struct mmap_info {
+	char *data;	    /* The data */
+	int reference;  /* How many times it is mmapped */
+};
+
+static struct mmap_info *g_info = NULL;
 
 /* DEBUGGING */
 module_param(sysctrl_debug, int, S_IRUSR | S_IWUSR);
@@ -70,10 +90,11 @@ static int sysctrl_lock = 0;
 /* 
 ** ISP related helper functions, handlers and variables
 */
-volatile uint8_t g_isp_operation_busy;
+volatile uint8_t g_isp_operation_busy = 0;
 static uint32_t g_error_flag;
 uint8_t g_page_buffer[BUF_LEN];
 uint8_t g_programming_mode = 0x0;
+static uint32_t g_src_image_target_address = 0;
 uint32_t g_length = 0;
 const char *g_buffer;
 
@@ -83,6 +104,7 @@ void isp_completion_handler(uint32_t value)
 	g_isp_operation_busy = 0;
 }
 
+/*
 read_page_from_user(uint8_t * k_buffer, uint32_t length)
 {
 	uint32_t ibytes;
@@ -93,25 +115,19 @@ read_page_from_user(uint8_t * k_buffer, uint32_t length)
 	return (length - ibytes);
 
 }
+*/
 
 uint32_t page_read_handler
 (
     uint8_t const ** pp_next_page
 )
 {
+	printk("page_read_handler\n");
+	
+    *pp_next_page = g_info->data + g_src_image_target_address;
+    g_src_image_target_address += BUF_LEN;
 
-//sysctrl_write(struct file *filp, const char *buffer, size_t length, loff_t * offset)
-
-//copy_from_user( to, from, n );
-
-//	uint8_t g_page_buffer[BUF_LEN];
-    uint32_t length;
-    //length = copy_from_user(&g_page_buffer, buffer, BUF_LEN);
-    length = read_page_from_user(g_buffer, BUF_LEN);
-    g_length = length;
-    *pp_next_page = g_page_buffer;
-
-    return length;
+    return BUF_LEN;
 }
 
 /*
@@ -121,12 +137,25 @@ static int sysctrl_open(struct inode *inode, struct file *file)
 {
 	int ret = 0;
 	int ret_irq;
+	/*mmap*/
+	//struct mmap_info *info = kmalloc(sizeof(struct mmap_info), GFP_KERNEL);
+	//g_info = kmalloc(sizeof(struct mmap_info), GFP_KERNEL); //test
+	//d_printk(1, "kmalloc done");
+	//info->data = (char *)get_zeroed_page(GFP_KERNEL);
+	//g_info->data = (char *)get_zeroed_page(GFP_KERNEL);
+	d_printk(1, "get_zeroed_page done");
 	d_printk(3, "%p", file);
+	//file->private_data = info;
+	//file->private_data = g_info;
+
+//	memcpy(info->data, filp->f_dentry->d_name.name, strlen(filp->f_dentry->d_name.name));
 	
 	/*
 	struct sample_dev *dev = hwinfo + MINOR(inode->i_rdev);
 	request_irq(dev->irq, ComBlk_IRQHandler, 0, "sysctrl", dev);
 	*/
+	
+	/* register IRQ for Communcation Block */
 	ret_irq = request_irq(ComBlk_IRQn, ComBlk_IRQHandler, 0, "sysctrl", 0);
 	if(ret_irq < 0){
 		d_printk(1,"request_irq failed with %d", ret_irq);
@@ -152,16 +181,105 @@ static int sysctrl_open(struct inode *inode, struct file *file)
 */
 static int sysctrl_release(struct inode *inode, struct file *file)
 {
+	//struct mmap_info *info = file->private_data;
+	//g_info = file->private_data;
+	//free_page((unsigned long)info->data);
+	//free_page((unsigned long)g_info->data);
+	//kfree(info);
+	//kfree(g_info);
+	//file->private_data = NULL;
+	
 	/* Release interrupt and device */
  	free_irq(ComBlk_IRQn, 0);
+	/* release lock */
 	sysctrl_lock = 0;
-
 	/* Decrement module use counter */
 	module_put(THIS_MODULE);
 
 	d_printk(2, "lock=%d\n", sysctrl_lock);
 	return 0;
 }
+
+/*
+** MMAP
+*/
+/* keep track of how many times it is mmapped */
+
+void mmap_open(struct vm_area_struct *vma)
+{
+	//struct mmap_info *info = (struct mmap_info *)vma->vm_private_data;
+	g_info = (struct mmap_info *)vma->vm_private_data;
+	d_printk(1, "g_info set to vm_private_data");
+	//info->reference++;
+	g_info->reference++;
+	d_printk(1, "incremented g_info->reference");
+}
+
+void mmap_close(struct vm_area_struct *vma)
+{
+	//struct mmap_info *info = (struct mmap_info *)vma->vm_private_data;
+	g_info = (struct mmap_info *)vma->vm_private_data;
+	//info->reference--;
+	g_info->reference--;
+}
+
+/*
+** Nopage is called the first time a memory area is accesssed.
+** Does mapping between user-kernel space
+*/
+//struct page *mmap_nopage(struct vm_area_struct *vma, unsigned long address, int *type)
+static int mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+{
+	//struct page *page;
+	struct page *g_page;
+	//struct mmap_info *info;
+	/* the data is in vma->vm_private_data */
+	/*
+	info = (struct mmap_info *)vma->vm_private_data;
+	if (!info->data) {
+		printk("no data\n");
+		return NULL;	
+	}
+	*/
+	g_info = (struct mmap_info *)vma->vm_private_data;
+	if (!g_info->data) {
+		printk("no data\n");
+		return NULL;	
+	}
+	/* get the page */
+	//page = virt_to_page(info->data);
+	g_page = virt_to_page(g_info->data);
+	
+	/* increment the reference count of this page */
+	//get_page(page);
+	//vmf->page = page;
+	get_page(g_page);
+	vmf->page = g_page;
+	return 0;
+}
+
+struct vm_operations_struct mmap_vm_ops = {
+	.open = mmap_open,
+	.close = mmap_close,
+	.fault = mmap_fault,
+};
+
+int sysctrl_mmap(struct file *filp, struct vm_area_struct *vma)
+{
+	d_printk(1, "entered mmap");
+	vma->vm_ops = &mmap_vm_ops;
+	d_printk(1, "vm_ops");
+	vma->vm_flags |= VM_RESERVED;
+	d_printk(1, "VM_RESERVED");
+	/* assign the file private data to the vm private */
+	vma->vm_private_data = filp->private_data;
+	d_printk(1, "set private_data");
+	d_printk(1, "executing mmap_open");
+	mmap_open(vma);
+	d_printk(1, "mmap done");
+	return 0;
+}
+
 
 /* 
 ** Device read
@@ -189,14 +307,14 @@ static ssize_t sysctrl_write(struct file *filp, const char *buffer,
 	** then everything should be OK. Now, this is not 100%
 	** fault free.
 	 */
+	 /*
 	if(g_programming_mode == AUTHENTICATE){
 		g_isp_operation_busy = 1;
 		g_buffer = &buffer;
 		MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE,page_read_handler,isp_completion_handler);
-		while(g_isp_operation_busy){;} /* Waiting for isp_completion_handler */
+		while(g_isp_operation_busy){;}
 		if(!g_isp_operation_busy){
 			
-			/* Error checking */
 			if(g_error_flag == MSS_SYS_SUCCESS) {
 				d_printk(1,"Authenticate succeeded, wrote %d bytes", n);
 				return n;
@@ -207,7 +325,8 @@ static ssize_t sysctrl_write(struct file *filp, const char *buffer,
 			}
 		}
 		
-	} 
+	}
+ 
 	else if(g_programming_mode == VERIFY){
 		return 0;
 	}
@@ -215,6 +334,7 @@ static ssize_t sysctrl_write(struct file *filp, const char *buffer,
 		return 0;
 	}
 	else
+	*/
 	/* Return number of characters used */
 	return n;
 }
@@ -244,7 +364,7 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 			d_printk(3, "Status: %#x", status);
 			if(MSS_SYS_SUCCESS == status){
 				/* Replace with copy_to_user */
-				d_printk(1, "Got serial number: %#02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
+				d_printk(2, "Got serial number: %#02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
 				, q.serial_number[15], q.serial_number[14]
 				, q.serial_number[13], q.serial_number[12]
 				, q.serial_number[11], q.serial_number[10]
@@ -302,7 +422,14 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 			break;
 		case PROG_AUTHENTICATE:
 			d_printk(1, "Authentification...");
+			g_src_image_target_address = 0;
+			g_isp_operation_busy = 1;
 			g_programming_mode = AUTHENTICATE;
+			d_printk(1, "We are now starting ISP service");
+			MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE,page_read_handler,isp_completion_handler);
+			while(g_isp_operation_busy){
+				printk(".");
+			}
 			break;
 		case PROG_VERIFY:
 			d_printk(1, "Verification...");
@@ -333,7 +460,7 @@ static struct file_operations sysctrl_fops = {
 #else
 	unlocked_ioctl = sysctrl_ioctl,
 #endif
-	.mmap = sysctrl_mmap
+	.mmap = sysctrl_mmap,
 };
 
 static int __init sysctrl_init_module(void)
