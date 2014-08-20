@@ -93,10 +93,10 @@ static int sysctrl_lock = 0;
 volatile uint8_t g_isp_operation_busy = 0;
 static uint32_t g_error_flag;
 uint8_t g_page_buffer[BUF_LEN];
-uint8_t g_programming_mode = 0x0;
+static uint8_t g_programming_mode = 0x0;
 static uint32_t g_src_image_target_address = 0;
 uint32_t g_length = 0;
-const char *g_buffer;
+static char *g_buffer;
 
 void isp_completion_handler(uint32_t value)
 {
@@ -124,7 +124,7 @@ uint32_t page_read_handler
 {
 	printk("page_read_handler\n");
 	
-    *pp_next_page = g_info->data + g_src_image_target_address;
+    *pp_next_page = g_buffer + g_src_image_target_address;
     g_src_image_target_address += BUF_LEN;
 
     return BUF_LEN;
@@ -139,10 +139,11 @@ static int sysctrl_open(struct inode *inode, struct file *file)
 	int ret_irq;
 	/*mmap*/
 	//struct mmap_info *info = kmalloc(sizeof(struct mmap_info), GFP_KERNEL);
-	//g_info = kmalloc(sizeof(struct mmap_info), GFP_KERNEL); //test
-	//d_printk(1, "kmalloc done");
+	g_info = kmalloc(sizeof(struct mmap_info), GFP_ATOMIC); //test
+	if(!g_info){ d_printk(1, "kmalloc failed!");}
+	else {d_printk(1, "kmalloc done");}
 	//info->data = (char *)get_zeroed_page(GFP_KERNEL);
-	//g_info->data = (char *)get_zeroed_page(GFP_KERNEL);
+	g_info->data = (char *)get_zeroed_page(GFP_ATOMIC);
 	d_printk(1, "get_zeroed_page done");
 	d_printk(3, "%p", file);
 	//file->private_data = info;
@@ -184,9 +185,9 @@ static int sysctrl_release(struct inode *inode, struct file *file)
 	//struct mmap_info *info = file->private_data;
 	//g_info = file->private_data;
 	//free_page((unsigned long)info->data);
-	//free_page((unsigned long)g_info->data);
+	free_page((unsigned long)g_info->data);
 	//kfree(info);
-	//kfree(g_info);
+	kfree(g_info);
 	//file->private_data = NULL;
 	
 	/* Release interrupt and device */
@@ -301,6 +302,14 @@ static ssize_t sysctrl_write(struct file *filp, const char *buffer,
 {
 	int n=0;
 	d_printk(0, "write(%p,%p,%d)", filp, buffer, length);
+	d_printk(1, "Program mode: %#2x", g_programming_mode);
+	
+	g_buffer = kmalloc(length, GFP_ATOMIC);
+	if(!g_buffer){d_printk(1, "kmalloc failed");}
+	if(copy_from_user(g_buffer, filp, length) != 0){d_printk(1, "failed copy_from_user");}
+	
+	
+	
 	/* Guess there are better ways of doing this...
 	** But for now, this way the user program is the one
 	** that tells us the status - if all data is written
@@ -425,7 +434,8 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 			g_src_image_target_address = 0;
 			g_isp_operation_busy = 1;
 			g_programming_mode = AUTHENTICATE;
-			d_printk(1, "We are now starting ISP service");
+			d_printk(1, "We are now starting ISP service\n");
+			/* MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE,page_read_handler,isp_completion_handler); */
 			MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE,page_read_handler,isp_completion_handler);
 			while(g_isp_operation_busy){
 				printk(".");
