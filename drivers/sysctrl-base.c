@@ -91,7 +91,7 @@ static int sysctrl_lock = 0;
 /* 
 ** ISP related helper functions, handlers and variables
 */
-volatile uint8_t g_isp_operation_busy = 1;
+volatile uint8_t g_isp_operation_busy = 0;
 static uint32_t g_error_flag;
 //uint8_t g_page_buffer[BUF_LEN];
 static uint8_t g_programming_mode = 0x0;
@@ -305,13 +305,21 @@ static ssize_t sysctrl_write(struct file *filp, const char *buffer,
 {
 	int n=0;
 	bits_length = length;
+	d_printk(1, "write was invoked");
 	d_printk(0, "write(%p,%p,%d)", filp, buffer, length);
 	d_printk(1, "Program mode: %#2x", g_programming_mode);
 	//printk("offset before: %d\n", *offset);
 	g_buffer = kmalloc(length, GFP_ATOMIC);
-	printk("g_buffer length: %d\n", sizeof(g_buffer));
+	d_printk(1, "g_buffer length: %d\n", sizeof(g_buffer));
 	if(!g_buffer){d_printk(1, "kmalloc failed");}
 	if( (n = copy_from_user(g_buffer, buffer, length)) != 0){d_printk(1, "failed copy_from_user");}
+	/*
+	for(i = 0; i<24; i=i+4){
+		printk("%p: %#x\n", (g_buffer+i), *(g_buffer+i));
+	}
+	*/
+
+	
 	//printk("offset after: %d\n", *offset);
 	printk("n:%d",n);
 	
@@ -445,7 +453,8 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 			/* MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE,page_read_handler,isp_completion_handler); */
 			MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE,page_read_handler,isp_completion_handler);
 			while(g_isp_operation_busy){
-				printk(".");
+				//printk(".");
+				;
 			}
 			if(!g_isp_operation_busy){
 				if(g_error_flag == MSS_SYS_SUCCESS){
