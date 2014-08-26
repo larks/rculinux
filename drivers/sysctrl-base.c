@@ -469,7 +469,26 @@ static long sysctrl_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 			break;
 		case PROG_PROGRAM:
 			d_printk(1, "Programming...");
+			g_src_image_target_address = 0;
+			g_isp_operation_busy = 1;
 			g_programming_mode = PROGRAM;
+			MSS_SYS_start_isp(MSS_SYS_PROG_AUTHENTICATE,page_read_handler,isp_completion_handler);
+			while(g_isp_operation_busy){;}
+			if(!g_isp_operation_busy){
+				if(g_error_flag == MSS_SYS_SUCCESS){
+					printk("AUTH completed with success\n");
+					MSS_SYS_init(MSS_SYS_NO_EVENT_HANDLER);
+					g_isp_operation_busy = 1;
+					g_src_image_target_address = 0;
+					MSS_SYS_start_isp(MSS_SYS_PROG_PROGRAM,page_read_handler,isp_completion_handler);
+					while(g_isp_operation_busy){;}
+					if(g_error_flag == MSS_SYS_SUCCESS){
+						printk("PROG completed with success\n");
+					} else printk("AUTH failed with error flag: %#x\n", g_error_flag);
+					
+				}
+				else printk("AUTH failed with error flag: %#x\n", g_error_flag);
+			}
 			break;
 		default:
 			return -EINVAL;
